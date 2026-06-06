@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Command Center</title>
+  <meta name="description" content="A living, visual dashboard for understanding a project's state at a glance." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='6' fill='%236ea8fe'/></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <div class="brand"><span class="dot"></span><span id="brand-name">Command Center</span></div>
+      <nav class="nav">
+        <a href="#roadmap-sec">Roadmap</a>
+        <a href="#features-sec">Features</a>
+        <a href="#focus-sec">Focus</a>
+        <a href="#architecture-sec">Architecture</a>
+        <a href="#prd-sec">PRDs</a>
+        <a href="#decisions-sec">Decisions</a>
+        <a href="#risks-sec">Risks</a>
+        <a href="#agent-sec">AI Notes</a>
+        <a href="#changelog-sec">Changelog</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero" id="hero-sec">
+      <div id="hero"></div>
+      <div class="demo-banner">
+        <b>Demo:</b> this is example data for a fictional product. It's generated from the
+        <a href="https://github.com/" id="repo-link">Project Command Center prompt</a>.
+        Everything you see renders from <code>data.js</code>.
+      </div>
+    </section>
+
+    <section id="roadmap-sec">
+      <div class="section-head"><h2>Roadmap</h2><span class="count" id="roadmap-count"></span><span class="kicker">Phase progress</span></div>
+      <div id="roadmap"></div>
+    </section>
+
+    <section id="features-sec">
+      <div class="section-head"><h2>Feature Matrix</h2><span class="count" id="features-count"></span><span class="kicker">By product area</span></div>
+      <div id="features"></div>
+    </section>
+
+    <section id="focus-sec">
+      <div class="section-head"><h2>Current Focus</h2><span class="kicker">What to work on next</span></div>
+      <div id="focus"></div>
+    </section>
+
+    <section id="architecture-sec">
+      <div class="section-head"><h2>Architecture Map</h2><span class="kicker">System overview</span></div>
+      <div id="architecture"></div>
+    </section>
+
+    <section id="prd-sec">
+      <div class="section-head"><h2>PRD / Specs Tracker</h2><span class="count" id="prd-count"></span><span class="kicker">Spec alignment</span></div>
+      <div id="prd"></div>
+    </section>
+
+    <section id="decisions-sec">
+      <div class="section-head"><h2>Decisions Log</h2><span class="count" id="decisions-count"></span><span class="kicker">Why things are the way they are</span></div>
+      <div id="decisions"></div>
+    </section>
+
+    <section id="risks-sec">
+      <div class="section-head"><h2>Risks &amp; Blockers</h2><span class="count" id="risks-count"></span><span class="kicker">Sorted by severity</span></div>
+      <div id="risks"></div>
+    </section>
+
+    <section id="agent-sec">
+      <div class="section-head"><h2>Notes for AI Agents</h2><span class="kicker">Make future sessions faster &amp; safer</span></div>
+      <div id="agent"></div>
+    </section>
+
+    <section id="changelog-sec">
+      <div class="section-head"><h2>Activity / Changelog</h2><span class="kicker">Recent progress</span></div>
+      <div id="changelog"></div>
+    </section>
+
+    <footer>
+      Project Command Center · rendered from <code>data.js</code> · update the data, the page updates itself.
+    </footer>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
