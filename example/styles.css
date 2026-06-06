@@ -264,6 +264,39 @@ section { padding: 38px 0 8px; scroll-margin-top: 72px; }
 .log-item h4 { margin: 0 0 2px; font-size: 14px; }
 .log-item p { margin: 0; font-size: 13px; color: var(--text-dim); }
 
+/* ---------- Human-only actions ---------- */
+.nav-urgent { color: var(--blocked) !important; font-weight: 700; }
+.nav-urgent:hover { background: color-mix(in srgb, var(--blocked) 12%, var(--surface)) !important; }
+
+.human-card { border-left: 3px solid var(--medium); }
+.human-card.critical { border-left-color: var(--high); background: linear-gradient(180deg, color-mix(in srgb, var(--high) 5%, var(--surface)), var(--surface)); }
+.human-card.high { border-left-color: var(--medium); }
+.human-card.medium { border-left-color: var(--low); }
+.human-card.done-action { opacity: .55; }
+.human-head { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.human-head h4 { margin: 0; font-size: 15px; flex: 1 1 200px; }
+.human-blocks { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim); margin: 8px 0; }
+.human-blocks b { color: var(--text-faint); white-space: nowrap; }
+.blocked-tag { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: color-mix(in srgb, var(--blocked) 12%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--blocked) 30%, var(--border)); color: var(--blocked); }
+.human-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--text-dim); margin-top: 10px; }
+.human-meta b { color: var(--text-faint); }
+.due { color: var(--needs-review); }
+
+/* ---------- Next steps ---------- */
+.steps-list { display: flex; flex-direction: column; gap: 10px; }
+.step-card { display: flex; gap: 16px; align-items: flex-start; }
+.step-num { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--brand), var(--brand-2));
+  color: #fff; font-size: 14px; font-weight: 800; display: grid; place-items: center; flex-shrink: 0; margin-top: 2px; }
+.step-body { flex: 1; }
+.step-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.step-head h4 { margin: 0; font-size: 15px; flex: 1 1 200px; }
+.owner-badge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 999px; }
+.owner-human { background: color-mix(in srgb, var(--needs-review) 18%, transparent); color: var(--needs-review); border: 1px solid color-mix(in srgb, var(--needs-review) 35%, var(--border)); }
+.owner-ai { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.step-unlocks { font-size: 13px; color: var(--text-dim); margin-top: 6px; }
+.step-unlocks::before { content: "→ "; color: var(--accent); }
+.step-blockedby { font-size: 12px; color: var(--blocked); margin-top: 4px; }
+
 /* ---------- Footer ---------- */
 footer { margin: 40px 0; padding-top: 20px; border-top: 1px solid var(--border); color: var(--text-faint); font-size: 12.5px; text-align: center; }
 

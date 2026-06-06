@@ -270,6 +270,70 @@
       </div>`;
   }
 
+  // --- human-only unblocking actions ---
+  function renderHumanActions() {
+    const pending = (data.humanActions || []).filter((a) => a.status !== "done");
+    $("#human-count").textContent = `${pending.length} pending`;
+    if (!data.humanActions || !data.humanActions.length) {
+      $("#human").innerHTML = `<div class="card"><p style="color:var(--text-dim);font-size:14px">No human actions recorded.</p></div>`;
+      return;
+    }
+    const order = { critical: 0, high: 1, medium: 2 };
+    const sorted = [...data.humanActions].sort((a, b) => (order[a.priority] ?? 9) - (order[b.priority] ?? 9));
+    $("#human").innerHTML = `<div class="grid">${sorted
+      .map(
+        (a) => `
+      <div class="card human-card ${esc(a.priority)} ${a.status === "done" ? "done-action" : ""}">
+        <div class="human-head">
+          <span class="sev ${esc(a.priority)}">${esc(a.priority)}</span>
+          ${badge(a.status)}
+          <h4>${esc(a.title)}</h4>
+        </div>
+        <p class="tl-desc">${esc(a.description)}</p>
+        ${
+          a.blocks && a.blocks.length
+            ? `<div class="human-blocks"><b>Blocks:</b> ${a.blocks.map((b) => `<span class="blocked-tag">${esc(b)}</span>`).join("")}</div>`
+            : ""
+        }
+        <div class="action"><b>How to do it:</b> ${esc(a.howTo)}</div>
+        <div class="human-meta">
+          ${a.assignedTo ? `<span><b>Assigned:</b> ${esc(a.assignedTo)}</span>` : ""}
+          ${a.dueBy ? `<span class="due"><b>Due:</b> ${esc(a.dueBy)}</span>` : ""}
+        </div>
+      </div>`
+      )
+      .join("")}</div>`;
+  }
+
+  // --- recommended next steps ---
+  function renderNextSteps() {
+    const steps = data.nextSteps || [];
+    $("#nextsteps-count").textContent = `${steps.length} steps`;
+    if (!steps.length) {
+      $("#nextsteps").innerHTML = `<div class="card"><p style="color:var(--text-dim);font-size:14px">No next steps recorded.</p></div>`;
+      return;
+    }
+    $("#nextsteps").innerHTML = `<div class="steps-list">${steps
+      .map(
+        (s) => `
+      <div class="step-card card">
+        <div class="step-num">${s.order}</div>
+        <div class="step-body">
+          <div class="step-head">
+            <h4>${esc(s.title)}</h4>
+            <span class="owner-badge ${s.owner === "Human" ? "owner-human" : "owner-ai"}">${esc(s.owner)}</span>
+            <span class="badge">${esc(s.effort)}</span>
+            ${s.blockedBy ? `<span class="badge blocked">Blocked</span>` : ""}
+          </div>
+          <p class="tl-desc">${esc(s.description)}</p>
+          ${s.unlocks ? `<div class="step-unlocks">Unlocks: ${esc(s.unlocks)}</div>` : ""}
+          ${s.blockedBy ? `<div class="step-blockedby">Blocked by human action: <b>${esc(s.blockedBy)}</b></div>` : ""}
+        </div>
+      </div>`
+      )
+      .join("")}</div>`;
+  }
+
   // --- changelog ---
   function renderChangelog() {
     $("#changelog").innerHTML = `<div class="card"><div class="log">${data.changelog
@@ -295,6 +359,8 @@
       return;
     }
     renderHero();
+    renderHumanActions();
+    renderNextSteps();
     renderRoadmap();
     renderFeatures();
     renderFocus();

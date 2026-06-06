@@ -345,6 +345,64 @@ If no changelog exists, create an initial one based on the changes you make now.
 
 ---
 
+## 11. Human-Only Unblocking Actions
+
+**This is one of the most important sections.**
+
+Create a dedicated, highly visible section for actions that **only a human can perform** and that are currently blocking progress.
+
+AI agents cannot complete these. They require a real person: a founder, a developer, a business contact, or a third party.
+
+Examples of human-only actions:
+
+- Approving or following up on a third-party API or partner application
+- Setting up accounts, billing, or credentials (Stripe, AWS, App Store, etc.)
+- Making a legal, compliance, or contractual decision
+- Performing a manual process (DNS change, form submission, physical hardware setup)
+- Acquiring a license, dataset, or asset
+- Giving a go/no-go decision on product or architectural direction
+- Reviewing and approving a security-sensitive implementation
+- Contacting support, vendors, or legal counsel
+
+For each action, include:
+
+- Priority: `critical` / `high` / `medium`
+- Title
+- Description of what needs to be done and why
+- What is currently blocked until this is resolved
+- How to do it (where to go, who to contact, what to click)
+- Assigned to (if known)
+- Due by / urgency note
+- Status: `pending` / `in-progress` / `done`
+
+This section should be rendered at the top of the dashboard (or in a highly visible position) so the human reading it immediately knows what they need to act on personally.
+
+Do not put things here that an AI agent could handle. Only include genuine human gates.
+
+---
+
+## 12. Recommended Next Steps
+
+Create a clear, ordered list of the highest-priority next actions for the project.
+
+This section exists so that anyone — a developer, a product owner, or an AI agent picking up the project fresh — immediately knows what to do next without reading everything else.
+
+Each step should include:
+
+- Order / priority rank
+- Title
+- Short description of what to do and why
+- Owner: `Human` or `AI`
+- Effort estimate: `small` / `medium` / `large`
+- What this unlocks when done
+- Whether it is blocked by a human action (reference the specific action from section 11)
+
+Keep this list short: the top 5–8 actionable steps. Do not list aspirational items or far-future work here — only concrete near-term actions.
+
+The first items on the list should be the things that, if done today, would unblock the most downstream work.
+
+---
+
 ## Data source
 
 The Command Center should be easy to maintain.
@@ -373,6 +431,8 @@ The data should include:
 - `risks`
 - `agentNotes`
 - `changelog`
+- `humanActions`
+- `nextSteps`
 
 The page should render from this structured data, not from hardcoded scattered text.
 
@@ -461,7 +521,7 @@ Also include where the page lives and where the data file lives.
 4. Create the structured command center data file.
 5. Populate the data file based on the actual repo contents.
 6. Create the visual Command Center page.
-7. Add visual roadmap, feature matrix, architecture map, risks, decisions, PRD tracker, changelog, and AI notes.
+7. Add visual roadmap, feature matrix, architecture map, risks, decisions, PRD tracker, changelog, AI notes, human-only unblocking actions, and recommended next steps.
 8. Add or update repo instructions so future AI agents maintain it.
 9. Run lint/typecheck/build if available.
 10. Fix any issues caused by the implementation.
@@ -512,7 +572,7 @@ The task is complete when:
 - The page is powered by structured data.
 - The data reflects the current repo as accurately as possible.
 - Future AI agents have written instructions to keep it updated.
-- The command center includes roadmap, features, PRDs/specs, decisions, risks, architecture, current focus, changelog, and AI notes.
+- The command center includes roadmap, features, PRDs/specs, decisions, risks, architecture, current focus, changelog, AI notes, human-only unblocking actions, and recommended next steps.
 - The implementation follows the repo’s existing conventions.
 - The project still builds or runs successfully, if build scripts are available.
 
@@ -638,6 +698,32 @@ Use this kind of data shape, adapted to the project and language/framework:
           relatedFiles: [],
         },
       ],
+
+      humanActions: [
+        {
+          id: "",
+          priority: "critical | high | medium",
+          title: "",
+          description: "",
+          blocks: [],
+          howTo: "",
+          assignedTo: "",
+          dueBy: "",
+          status: "pending | in-progress | done",
+        },
+      ],
+
+      nextSteps: [
+        {
+          order: 1,
+          title: "",
+          description: "",
+          owner: "Human | AI",
+          effort: "small | medium | large",
+          unlocks: "",
+          blockedBy: "",
+        },
+      ],
     };
 
 ---
@@ -672,6 +758,8 @@ Update it when:
 - A PRD/spec is created or implemented
 - A technical/product decision is made
 - A risk, blocker, or open question is discovered or resolved
+- A human-only action is identified, updated, or resolved
+- The recommended next steps change
 - Setup, deployment, testing, or architecture changes
 - Important notes for future AI agents are discovered
 
