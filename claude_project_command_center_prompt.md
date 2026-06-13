@@ -2,765 +2,275 @@
 
 Copy and paste this prompt into Claude Code inside any project/repo.
 
-> For a fully worked reference of what this produces, see the static example in
-> [`example/`](./example/) (a Command Center for a fictional AI product).
+> Reference implementation: [`example/`](./example/)
 
 ---
 
 You are working inside an existing software project/repository.
 
-Your task is to create and maintain a **Project Command Center**: a beautiful, visual, always-updated web page that acts as the central dashboard for understanding the current state of this project.
+Your task is to create and maintain a **Project Command Center**: a focused, visual dashboard that gives any developer, product owner, or AI agent an immediate understanding of the project's current state.
 
-The Command Center must give any developer, product owner, client, or AI agent an at-a-glance understanding of:
-
-- What this project is
-- What has already been built
-- What is currently in progress
-- What remains to be done
-- What decisions have been made
-- What blockers, risks, or open questions exist
-- What PRDs, specs, issues, milestones, or implementation phases exist
-- How far along the roadmap we are
-- What the next best actions are
-
-The Command Center should be treated as a living artifact that must be updated whenever the project evolves.
-
----
-
-## Core goal
-
-Create a visual web page inside this repo that acts as a command center for the project.
-
-It should not be a boring markdown checklist.
-
-It should feel like a modern product/project dashboard: aesthetic, visual, readable, and useful.
-
-It should help both humans and AI agents quickly understand the current project state without needing to read the entire codebase.
+One job: make it **immediately obvious** what the project is, what's blocked, and what happens next.
 
 ---
 
 ## First, inspect the project
 
-Before implementing anything, analyze the repository.
+Read the repository before implementing anything. Look for: framework, styling system, README, PRDs, TODOs, package scripts, roadmap documents, changelogs, deployment setup.
 
-Look for:
+Use existing conventions. Do not introduce unnecessary dependencies.
 
-- Existing framework: Next.js, React, Vite, Astro, Remix, plain HTML, etc.
-- Existing styling system: Tailwind, CSS modules, styled-components, shadcn/ui, Radix, Chakra, etc.
-- Existing routing structure
-- Existing documentation
-- README files
-- PRDs
-- specs
-- tickets
-- TODOs
-- package scripts
-- database/schema files
-- roadmap documents
-- changelogs
-- issue templates
-- architecture docs
-- existing product copy
-- environment examples
-- tests
-- deployment setup
+**If the repo has a web app**, add the Command Center as an internal route (`/command-center`, `/project-status`, or similar).
 
-Use the existing conventions of the repo. Do not introduce unnecessary dependencies unless clearly useful.
-
-If the repo already has a web app, add the Command Center as an internal route.
-
-Preferred routes:
-
-- `/command-center`
-- `/project-command-center`
-- `/dashboard/project`
-
-Choose the most natural route for the existing project.
-
-If the repo does not have a web app, create the smallest reasonable static or lightweight app/page that can be opened locally.
-
-For this static fallback, prefer a zero-build page: a single `index.html` plus a small renderer, where the data lives in a plain JS global (e.g. `data.js` setting `window.COMMAND_CENTER_DATA = {...}`) rather than a `fetch`-ed JSON file. This keeps the page working both when opened directly via `file://` and when served from a static host, with no build step and no local server.
+**If it doesn't**, create a zero-build static page: `index.html` + `data.js` (sets `window.COMMAND_CENTER_DATA = {...}`) + `app.js`. This works via `file://` and any static host with no build step needed.
 
 ---
 
 ## What to build
 
-Create a visually rich Command Center page with the following sections.
-
-You may adapt names and layout based on the project, but the information should be present.
+**Six sections, in this order. Do not add more.**
 
 ---
 
-## 1. Project Overview
+### 1. Project Header
 
-Show a concise overview of the project.
+A compact hero row. Include:
 
-Include:
+- Project name (large)
+- One-line description
+- Status badge: `in-progress` / `blocked` / `launching` / `done`
+- Overall progress ring or large percentage (≥100px ring diameter)
+- Current milestone and last updated date
 
-- Project name
-- One-line product description
-- Current phase/status
-- Target user/customer
-- Main value proposition
-- Last updated date
-- Current version or milestone, if available
-
-This should appear as a hero/header section.
-
-Make it visually appealing, with status badges, progress indicators, and strong hierarchy.
+One screen row on desktop. Tight and scannable.
 
 ---
 
-## 2. Roadmap Progress
+### 2. Human-Only Unblocking Actions
 
-Create a visual roadmap showing the main phases of the project.
+**Render this immediately after the header, before everything else.**
 
-Example phases:
+This section is for actions only a human can perform that are currently blocking progress. It must be visually dominant — a person opening the dashboard must immediately see what they need to do personally.
 
-- Discovery
-- PRD / Requirements
-- Design
-- Architecture
-- MVP Build
-- Core Features
-- Integrations
-- Testing
-- Polish
-- Launch
-- Post-launch Improvements
+If there are none pending, show a green "All clear" state. Never hide the section.
 
-Adapt these phases to the actual project.
+Examples: third-party API approvals, legal decisions, account or billing setup, licenses, DNS changes, go/no-go product decisions.
 
-Each roadmap item should include:
+**Visual rules (mandatory):**
+- `critical` items: red border + red-tinted background
+- `high` items: amber border
+- `medium` items: blue border
+- Each card shows: what it blocks, and one concrete "how to do it" step
+- Resolved (`done`) items are dimmed but remain visible for reference
 
-- Phase name
-- Status: `done`, `in-progress`, `blocked`, `not-started`, or `needs-review`
-- Short description
-- Progress percentage
-- Related files/docs/components, if known
-- Key notes
-
-This should be visual, not just text.
-
-Good options:
-
-- Horizontal roadmap timeline
-- Vertical milestone timeline
-- Kanban-style roadmap
-- Progress bars
-- Status cards
-- Mermaid diagram
-- SVG timeline
-- Stepper component
-
-Choose what fits the repo best.
+Data per item: `priority` · `title` · `description` · `blocks[]` · `howTo` · `status`
 
 ---
 
-## 3. Feature Matrix
+### 3. Now & Next
 
-Create a feature matrix showing the major product features.
+Two columns side by side:
 
-For each feature, include:
+**Left — In Progress** (max 3 items): what is actively being worked on right now.
 
-- Feature name
-- Description
-- Status
-- Priority: high / medium / low
-- Owner: Human / AI / unknown, if applicable
-- Related files
-- Implementation notes
-- Test status, if known
-- Completion percentage
+**Right — Up Next** (max 5 items, ordered 1–5): the next actions in priority order.
 
-This should be easy to scan.
-
-Use visual indicators:
-
-- Colored badges
-- Icons
-- Progress bars
-- Small status dots
-- Grouping by product area
-
----
-
-## 4. Current Sprint / Current Focus
-
-Show what the project is currently focused on.
-
-Include:
-
-- Active milestone
-- Current tasks
-- In-progress work
-- Next immediate actions
-- Recently completed items
-- Pending review items
-- Known blockers
-
-This section should make it obvious what Claude or another developer should work on next.
-
----
-
-## 5. Architecture Map
-
-Create a visual architecture overview.
-
-Include:
-
-- Main frontend structure
-- Backend/API structure
-- Database/storage
-- Authentication
-- External services
-- Deployment
-- Background jobs/workers
-- AI/agent workflows, if relevant
-- Key data flows
-
-Prefer a visual diagram.
-
-Use one of these depending on repo conventions:
-
-- Mermaid diagram
-- SVG diagram
-- CSS-based node graph
-- Card-based architecture map
-
-If Mermaid is already supported, use Mermaid. Otherwise, create a visually styled static diagram with HTML/CSS/React components.
-
----
-
-## 6. PRD / Specs Tracker
-
-Create a section that tracks product requirements and specs.
-
-Look for existing PRD/spec files in the repo.
-
-If they exist, summarize them.
-
-If they do not exist, create a starter structure.
-
-Track:
-
-- PRD name
-- Status
-- Related milestone
-- Requirements covered
-- Requirements still missing
-- Open questions
-- Linked files
-
-This section should help ensure the implementation and the PRD stay aligned.
-
----
-
-## 7. Decisions Log
-
-Create a concise decision log.
-
-Track important decisions such as:
-
-- Technology choices
-- Product scope decisions
-- UX decisions
-- API decisions
-- Data model decisions
-- Deployment decisions
-- Trade-offs
-
-Each decision should include:
-
-- Date
-- Decision
-- Reason
-- Impact
-- Related files
-
-If no decision log exists, create an initial one based on what can be inferred from the repo.
-
----
-
-## 8. Risks, Blockers, and Open Questions
-
-Create a highly visible section for:
-
-- Risks
-- Blockers
-- Unknowns
-- Pending product decisions
-- Technical debt
-- Security concerns
-- Performance concerns
-- Missing tests
-- Missing environment variables
-- Deployment risks
-
-Each item should include:
-
-- Type: risk / blocker / open-question / tech-debt
-- Severity: high / medium / low
-- Description
-- Suggested next action
-- Related files
-
----
-
-## 9. Notes for AI Agents
-
-Create a section specifically for future AI agents working on this repo.
-
-Include:
-
-- How to understand the project quickly
-- Where important files live
-- How to run the app
-- How to run tests
-- How to update the Command Center
-- Project conventions
-- Things not to break
-- Known pitfalls
-- Current next tasks
-
-This is very important.
-
-The Command Center should make future AI coding sessions faster and safer.
-
----
-
-## 10. Activity / Changelog
-
-Show a visual changelog of recent project progress.
-
-Track:
-
-- Date
-- What changed
-- Type: feature / bugfix / refactor / doc / decision / risk
-- Related files
-- Notes
-
-If no changelog exists, create an initial one based on the changes you make now.
-
----
-
-## 11. Human-Only Unblocking Actions
-
-**This is one of the most important sections.**
-
-Create a dedicated, highly visible section for actions that **only a human can perform** and that are currently blocking progress.
-
-AI agents cannot complete these. They require a real person: a founder, a developer, a business contact, or a third party.
-
-Examples of human-only actions:
-
-- Approving or following up on a third-party API or partner application
-- Setting up accounts, billing, or credentials (Stripe, AWS, App Store, etc.)
-- Making a legal, compliance, or contractual decision
-- Performing a manual process (DNS change, form submission, physical hardware setup)
-- Acquiring a license, dataset, or asset
-- Giving a go/no-go decision on product or architectural direction
-- Reviewing and approving a security-sensitive implementation
-- Contacting support, vendors, or legal counsel
-
-For each action, include:
-
-- Priority: `critical` / `high` / `medium`
+Each "Up Next" item shows:
+- Order number (large, visual)
+- Owner badge: `Human` (amber) or `AI` (green)
 - Title
-- Description of what needs to be done and why
-- What is currently blocked until this is resolved
-- How to do it (where to go, who to contact, what to click)
-- Assigned to (if known)
-- Due by / urgency note
-- Status: `pending` / `in-progress` / `done`
+- One-line "unlocks" statement
+- If blocked by a human action: show a red "Blocked" indicator referencing the action
 
-This section should be rendered at the top of the dashboard (or in a highly visible position) so the human reading it immediately knows what they need to act on personally.
-
-Do not put things here that an AI agent could handle. Only include genuine human gates.
+Data:
+- `inProgress`: `[{ title, owner }]`
+- `nextSteps`: `[{ order, owner, title, unlocks, blockedBy? }]`
 
 ---
 
-## 12. Recommended Next Steps
+### 4. Roadmap
 
-Create a clear, ordered list of the highest-priority next actions for the project.
+A **horizontal stepper strip** — not cards, not a vertical list, not a table.
 
-This section exists so that anyone — a developer, a product owner, or an AI agent picking up the project fresh — immediately knows what to do next without reading everything else.
+Render phase nodes on a horizontal track connected by a line. Each node:
+- Circle coloured by status: green (done), blue/pulse (in-progress), red (blocked), grey (not started), amber (needs review)
+- Phase name directly below
+- Progress % below the name
 
-Each step should include:
+That is all. No descriptions, no file lists, no notes. The strip must be understood in 3 seconds.
 
-- Order / priority rank
-- Title
-- Short description of what to do and why
-- Owner: `Human` or `AI`
-- Effort estimate: `small` / `medium` / `large`
-- What this unlocks when done
-- Whether it is blocked by a human action (reference the specific action from section 11)
+Make it horizontally scrollable on mobile if there are many phases.
 
-Keep this list short: the top 5–8 actionable steps. Do not list aspirational items or far-future work here — only concrete near-term actions.
-
-The first items on the list should be the things that, if done today, would unblock the most downstream work.
+Data per item: `{ title, status, progress }`
 
 ---
 
-## Data source
+### 5. Risks & Blockers
 
-The Command Center should be easy to maintain.
+Top 5 items maximum, sorted high → medium → low. One row per risk:
 
-Create a structured data file that powers the page.
+```
+[HIGH]  Title of the risk  →  Suggested action
+```
 
-Prefer one of these depending on the repo:
+If there are more than 5 risks, show a muted "and N more" line at the bottom. No cards, no descriptions. Brevity is mandatory.
 
-- `src/data/commandCenter.ts`
-- `src/lib/command-center.ts`
-- `src/content/command-center.json`
-- `docs/command-center.json`
-- `app/command-center/data.ts`
-
-Choose the path that best matches the project.
-
-The data should include:
-
-- `projectOverview`
-- `roadmap`
-- `features`
-- `currentFocus`
-- `architecture`
-- `prdTracker`
-- `decisions`
-- `risks`
-- `agentNotes`
-- `changelog`
-- `humanActions`
-- `nextSteps`
-
-The page should render from this structured data, not from hardcoded scattered text.
-
-This makes it easy for future AI agents to update.
+Data per item: `{ severity, title, action }`
 
 ---
 
-## Design requirements
+### 6. Activity
 
-The page must be visually strong and appealing.
+Last 5 changelog entries. One line each:
 
-It should feel like a premium internal product dashboard.
+```
+2026-06-06  [feature]  Short title of what changed
+```
 
-Use the repo’s existing design system if available.
+No descriptions, no file lists. A compact strip.
 
-Design direction:
+Data per item: `{ date, type, title }`
 
-- Clean modern dashboard
-- Strong spacing and hierarchy
-- Cards
-- Badges
-- Progress bars
-- Timeline
-- Visual roadmap
-- Diagrams
-- Charts or mini-metrics
-- Subtle gradients if appropriate
-- Responsive layout
-- Good dark/light mode compatibility if the project supports it
-- Easy to scan at a glance
+---
 
-Avoid:
+## Data shape
 
-- A plain markdown-looking page
-- Huge walls of text
-- Overly generic placeholder content
-- Unstyled tables
-- Adding unnecessary heavy chart libraries unless already present
+Use this shape exactly, adapted to the project's language and file conventions:
 
-If you need visual charts, prefer CSS, SVG, or lightweight existing components.
+```js
+// data.js  (or commandCenter.ts / command-center.json)
+window.COMMAND_CENTER_DATA = {
+  projectOverview: {
+    name: "",
+    description: "",
+    status: "in-progress | blocked | launching | done",
+    progress: 0,
+    milestone: "",
+    lastUpdated: "",
+  },
+
+  humanActions: [
+    {
+      id: "",
+      priority: "critical | high | medium",
+      title: "",
+      description: "",
+      blocks: [],
+      howTo: "",
+      status: "pending | in-progress | done",
+    },
+  ],
+
+  now: {
+    inProgress: [
+      { title: "", owner: "Human | AI" },
+    ],
+    nextSteps: [
+      {
+        order: 1,
+        owner: "Human | AI",
+        title: "",
+        unlocks: "",
+        blockedBy: "",
+      },
+    ],
+  },
+
+  roadmap: [
+    {
+      title: "",
+      status: "done | in-progress | blocked | not-started | needs-review",
+      progress: 0,
+    },
+  ],
+
+  risks: [
+    {
+      severity: "high | medium | low",
+      title: "",
+      action: "",
+    },
+  ],
+
+  changelog: [
+    {
+      date: "",
+      type: "feature | fix | decision | risk | setup | doc",
+      title: "",
+    },
+  ],
+};
+```
+
+---
+
+## Visual requirements
+
+The page must feel like a **focused operations dashboard**, not a documentation page.
+
+**Mandatory:**
+- Human Actions section is visually dominant — high contrast, coloured borders, cannot be missed
+- Roadmap is a horizontal node strip — not vertical, not cards
+- Each section enforces a strict text budget: roadmap nodes show only name + %; risk rows show only severity + title + action; activity rows show only date + type + title
+- Progress ring on the header (≥100px diameter)
+- Responsive — stack sections to single column on mobile; roadmap scrolls horizontally
+
+**Avoid:**
+- Stacked text cards as the primary layout for the roadmap or risks
+- More than 2 visible lines of text per item in any section
+- Equal visual weight across all sections — use size, colour, and contrast to create hierarchy
 
 ---
 
 ## Maintenance rules
 
-Add explicit instructions to the repo so future Claude sessions know to keep this updated.
+Add this to `CLAUDE.md` or `AGENTS.md`:
 
-Create or update one of these files:
+```
+## Project Command Center
 
-- `CLAUDE.md`
-- `AGENTS.md`
-- `README.md`
-- `docs/COMMAND_CENTER.md`
+Living dashboard at: [route or file path]
+Data file: [data file path]
 
-Add a section saying:
+Update it when:
+- A human action is added, changed, or resolved
+- A roadmap phase changes status or progress %
+- A risk is discovered or resolved
+- Next steps change
+- A notable change is made (add to changelog, last 5 only)
 
-### Project Command Center
-
-This repository includes a living Project Command Center.
-
-Whenever you make meaningful changes to the project, update the Command Center data and page.
-
-Update it when you:
-
-- Add or complete a feature
-- Change roadmap status
-- Implement part of a PRD
-- Add a new PRD/spec
-- Make an architectural decision
-- Discover a blocker or risk
-- Resolve a blocker
-- Add important technical debt
-- Change setup, deployment, or test instructions
-
-The Command Center should always reflect the real current state of the repo.
-
-Also include where the page lives and where the data file lives.
+Keep it accurate. Keep entries brief.
+```
 
 ---
 
-## Required implementation steps
+## Required steps
 
-1. Inspect the repo structure.
-2. Identify the framework and styling approach.
-3. Decide the best location for the Command Center route/page.
-4. Create the structured command center data file.
-5. Populate the data file based on the actual repo contents.
-6. Create the visual Command Center page.
-7. Add visual roadmap, feature matrix, architecture map, risks, decisions, PRD tracker, changelog, AI notes, human-only unblocking actions, and recommended next steps.
-8. Add or update repo instructions so future AI agents maintain it.
-9. Run lint/typecheck/build if available.
-10. Fix any issues caused by the implementation.
-11. Offer to make the Command Center shareable (see "Deployment & sharing").
-12. Summarize what was created and where.
+1. Inspect the repo structure and conventions.
+2. Choose route (web app) or static file (no web app).
+3. Create the data file and populate it from what you find.
+4. Build the six-section visual page.
+5. Add maintenance instructions to `CLAUDE.md` / `AGENTS.md`.
+6. Run build/lint if available and fix any issues.
+7. Offer to deploy to GitHub Pages if a static page was used.
+8. Summarize: page location, data file location, what was inferred, what is unknown.
 
 ---
 
-## Deployment & sharing
+## Important
 
-A Command Center is most useful when stakeholders can see it without checking out the repo.
+Do not invent certainty. If something is unknown, write `"Unknown"` or mark status as `needs-review`. Do not pretend a feature is done unless the code clearly shows it.
 
-After building it, offer to make it publicly viewable:
-
-- If the static fallback page was used, it can be deployed to **GitHub Pages** with no build step — either by setting Pages to serve a folder (e.g. `/docs`), or by adding a small GitHub Actions workflow that publishes the page's folder.
-- If the Command Center is a route inside an existing app, point out how it ships with the app's normal deployment (and note any auth that would gate it).
-
-Do not push or enable anything externally without the user's go-ahead. Just propose the simplest path and let them confirm.
+The task is complete when the dashboard opens, the six sections render visually, and someone can understand the project's current status in under 10 seconds.
 
 ---
 
-## Important behavior
-
-Do not invent fake certainty.
-
-If something is unknown, mark it as unknown.
-
-Use labels like:
-
-- `Unknown`
-- `Needs discovery`
-- `Needs product decision`
-- `Needs technical review`
-- `Not found in repo`
-
-Do not pretend a feature is implemented unless the code/docs clearly show it.
-
-When in doubt, create a “Needs verification” note.
-
----
-
-## Completion criteria
-
-The task is complete when:
-
-- A Command Center web page exists and can be opened locally.
-- The page is visual, aesthetic, and useful.
-- The page is powered by structured data.
-- The data reflects the current repo as accurately as possible.
-- Future AI agents have written instructions to keep it updated.
-- The command center includes roadmap, features, PRDs/specs, decisions, risks, architecture, current focus, changelog, AI notes, human-only unblocking actions, and recommended next steps.
-- The implementation follows the repo’s existing conventions.
-- The project still builds or runs successfully, if build scripts are available.
-
----
-
-## Suggested content structure
-
-Use this kind of data shape, adapted to the project and language/framework:
-
-    export const commandCenterData = {
-      projectOverview: {
-        name: "",
-        description: "",
-        phase: "",
-        status: "",
-        targetUsers: "",
-        valueProposition: "",
-        lastUpdated: "",
-        currentMilestone: "",
-      },
-
-      roadmap: [
-        {
-          id: "",
-          title: "",
-          description: "",
-          status: "done | in-progress | blocked | not-started | needs-review",
-          progress: 0,
-          priority: "high | medium | low",
-          relatedFiles: [],
-          notes: [],
-        },
-      ],
-
-      features: [
-        {
-          id: "",
-          name: "",
-          area: "",
-          description: "",
-          status: "done | in-progress | blocked | not-started | needs-review",
-          priority: "high | medium | low",
-          progress: 0,
-          relatedFiles: [],
-          testStatus: "covered | partial | missing | unknown",
-          notes: [],
-        },
-      ],
-
-      currentFocus: {
-        activeMilestone: "",
-        inProgress: [],
-        nextActions: [],
-        pendingReview: [],
-        blockers: [],
-      },
-
-      architecture: {
-        summary: "",
-        components: [
-          {
-            name: "",
-            type: "",
-            description: "",
-            relatedFiles: [],
-          },
-        ],
-        dataFlows: [],
-        externalServices: [],
-      },
-
-      prdTracker: [
-        {
-          id: "",
-          title: "",
-          status: "draft | approved | in-progress | implemented | needs-review | missing",
-          summary: "",
-          coveredRequirements: [],
-          missingRequirements: [],
-          openQuestions: [],
-          relatedFiles: [],
-        },
-      ],
-
-      decisions: [
-        {
-          date: "",
-          title: "",
-          decision: "",
-          rationale: "",
-          impact: "",
-          relatedFiles: [],
-        },
-      ],
-
-      risks: [
-        {
-          id: "",
-          type: "risk | blocker | open-question | tech-debt",
-          severity: "high | medium | low",
-          title: "",
-          description: "",
-          suggestedAction: "",
-          relatedFiles: [],
-        },
-      ],
-
-      agentNotes: {
-        quickStart: [],
-        importantFiles: [],
-        commands: [],
-        conventions: [],
-        pitfalls: [],
-        nextRecommendedTasks: [],
-      },
-
-      changelog: [
-        {
-          date: "",
-          type: "feature | bugfix | refactor | doc | decision | risk | setup",
-          title: "",
-          description: "",
-          relatedFiles: [],
-        },
-      ],
-
-      humanActions: [
-        {
-          id: "",
-          priority: "critical | high | medium",
-          title: "",
-          description: "",
-          blocks: [],
-          howTo: "",
-          assignedTo: "",
-          dueBy: "",
-          status: "pending | in-progress | done",
-        },
-      ],
-
-      nextSteps: [
-        {
-          order: 1,
-          title: "",
-          description: "",
-          owner: "Human | AI",
-          effort: "small | medium | large",
-          unlocks: "",
-          blockedBy: "",
-        },
-      ],
-    };
-
----
-
-## Final response
-
-After implementing, respond with:
-
-- Where the Command Center page was added
-- Where the data file lives
-- What repo instruction file was updated
-- What information was inferred
-- What remains unknown
-- Which command was run to validate the implementation
-
----
-
-# Optional recurring instruction for CLAUDE.md
-
-After the first implementation, add this shorter recurring instruction to your project’s `CLAUDE.md`.
+# Recurring instruction (add to CLAUDE.md after first build)
 
 ## Always maintain the Project Command Center
 
-This repo has a living Project Command Center.
+Before finishing any meaningful task, update the Command Center data file.
 
-Before finishing any meaningful task, check whether the Command Center needs to be updated.
+Update when: a human action changes, roadmap progress changes, a risk is added or resolved, next steps change, or a notable change happened (add to changelog).
 
-Update it when:
-
-- Roadmap progress changes
-- A feature is added, changed, blocked, or completed
-- A PRD/spec is created or implemented
-- A technical/product decision is made
-- A risk, blocker, or open question is discovered or resolved
-- A human-only action is identified, updated, or resolved
-- The recommended next steps change
-- Setup, deployment, testing, or architecture changes
-- Important notes for future AI agents are discovered
-
-The Command Center must stay accurate. Do not leave it stale.
+The Command Center must stay accurate. Keep entries brief.
