@@ -1,7 +1,7 @@
 import { projectCreateSchema, projectFilterSchema, projectUpdateSchema, slugify } from '@/lib/schemas'
 import type { ProjectCreate, ProjectFilterInput, ProjectUpdate } from '@/lib/schemas'
 import { STALE_DAYS, type LogEntry, type Idea, type MoneyEntry, type Project, type ProjectDetail, type ProjectOverview, type Resource, type Task } from '@/lib/types'
-import { CoreError, unwrap, type Ctx } from './context'
+import { CoreError, shape, unwrap, type Ctx } from './context'
 import { touchProject } from './touch'
 
 const daysAgoIso = (days: number) =>
@@ -40,15 +40,16 @@ export async function listProjects(ctx: Ctx, input: ProjectFilterInput = {}): Pr
 export async function getProject(ctx: Ctx, idOrSlug: string): Promise<ProjectDetail> {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug)
 
-  const { data: project } = await ctx.db
+  const { data } = await ctx.db
     .from('project_overview')
     .select('*')
     .eq('user_id', ctx.userId)
     .eq(isUuid ? 'id' : 'slug', idOrSlug)
     .maybeSingle()
 
-  if (!project) throw new CoreError(`No project matching "${idOrSlug}"`, 404)
-  const id = (project as ProjectOverview).id
+  if (!data) throw new CoreError(`No project matching "${idOrSlug}"`, 404)
+  const project = shape<ProjectOverview>(data)
+  const id = project.id
 
   const [tasks, ideas, resources, money, log] = await Promise.all([
     ctx.db.from('tasks').select('*').eq('project_id', id).order('status').order('position').order('created_at'),
@@ -59,12 +60,12 @@ export async function getProject(ctx: Ctx, idOrSlug: string): Promise<ProjectDet
   ])
 
   return {
-    project: project as ProjectOverview,
-    tasks: (tasks.data ?? []) as Task[],
-    ideas: (ideas.data ?? []) as Idea[],
-    resources: (resources.data ?? []) as Resource[],
-    money: (money.data ?? []) as MoneyEntry[],
-    log: (log.data ?? []) as LogEntry[],
+    project,
+    tasks: shape<Task[]>(tasks.data ?? []),
+    ideas: shape<Idea[]>(ideas.data ?? []),
+    resources: shape<Resource[]>(resources.data ?? []),
+    money: shape<MoneyEntry[]>(money.data ?? []),
+    log: shape<LogEntry[]>(log.data ?? []),
   }
 }
 

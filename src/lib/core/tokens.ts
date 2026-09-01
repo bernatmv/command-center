@@ -1,7 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { ApiToken } from '@/lib/types'
-import { CoreError, unwrap, type Ctx } from './context'
+import { CoreError, shape, unwrap, type Ctx } from './context'
 
 const hash = (raw: string) => createHash('sha256').update(raw).digest('hex')
 
@@ -50,12 +50,13 @@ export async function resolveToken(raw: string): Promise<string | null> {
     .maybeSingle()
 
   if (!data) return null
+  const row = shape<{ id: string; user_id: string; token_hash: string }>(data)
 
   // Constant-time confirmation, so a partial index match can't be timed.
-  const a = Buffer.from(data.token_hash, 'hex')
+  const a = Buffer.from(row.token_hash, 'hex')
   const b = Buffer.from(candidate, 'hex')
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null
 
-  void db.from('api_tokens').update({ last_used_at: new Date().toISOString() }).eq('id', data.id).then()
-  return data.user_id as string
+  void db.from('api_tokens').update({ last_used_at: new Date().toISOString() }).eq('id', row.id).then()
+  return row.user_id
 }

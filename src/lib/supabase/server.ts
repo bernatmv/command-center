@@ -1,12 +1,13 @@
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { DB_SCHEMA, env } from '@/lib/env'
+import type { AppClient, Database } from './database'
 
 /** Session-scoped client for Server Components and Server Actions. RLS applies. */
-export async function createClient() {
+export async function createClient(): Promise<AppClient> {
   const cookieStore = await cookies()
 
-  return createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+  return createServerClient<Database, typeof DB_SCHEMA>(env.supabaseUrl, env.supabaseAnonKey, {
     db: { schema: DB_SCHEMA },
     cookies: {
       getAll: () => cookieStore.getAll(),
