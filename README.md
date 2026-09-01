@@ -81,6 +81,9 @@ about because they are global:
   `public`, not replacing it).
 - Authentication → Providers → **GitHub**, with a GitHub OAuth app whose
   callback URL is `https://gqknhdnmakqmumxkpinw.supabase.co/auth/v1/callback`.
+- Authentication → URL Configuration: site URL `http://localhost:3100`, with the
+  redirect allow list covering it. Add the Vercel URL here when deploying —
+  append, don't replace, since other apps may rely on this list.
 
 ### 2. Environment
 
@@ -97,8 +100,10 @@ Copy `.env.example` to `.env.local` and fill it in:
 ### 3. Run
 
 ```bash
-pnpm dev
+pnpm dev     # http://localhost:3100
 ```
+
+Port 3100, not 3000 — 3000 is usually taken by another local app.
 
 ### 4. Deploy
 
