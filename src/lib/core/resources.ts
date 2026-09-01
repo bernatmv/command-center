@@ -29,7 +29,7 @@ export async function captureResource(ctx: Ctx, input: ResourceCreate): Promise<
   const v = resourceCreateSchema.parse(input)
   const resource = unwrap(
     await ctx.db.from('resources')
-      .insert({ ...v, kind: input.kind ?? inferKind(v.url), user_id: ctx.userId })
+      .insert({ ...v, kind: v.kind ?? inferKind(v.url), user_id: ctx.userId })
       .select().single(),
   ) as Resource
   if (resource.project_id) await touchProject(ctx, resource.project_id, `Resource saved: ${resource.title}`)
