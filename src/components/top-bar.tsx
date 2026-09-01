@@ -8,6 +8,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 const LINKS = [
   { href: '/', label: 'Board' },
   { href: '/inbox', label: 'Inbox' },
+  { href: '/onboard', label: 'Repos' },
   { href: '/settings', label: 'Settings' },
 ]
 
