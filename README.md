@@ -16,9 +16,10 @@ evaporates because there was nowhere to put it in the five seconds available.
 
 So the board is built around three things:
 
-- **Staleness is loud.** Every write bumps `last_touched_at`. Projects nothing
-  has touched for 10 days turn amber, 30 days turn red. It is a column, not a
-  buried detail.
+- **Staleness is loud.** Every write bumps `last_touched_at`, and commits count
+  too. Projects nothing has touched for 10 days turn amber, 30 days turn red —
+  and the board sorts by it, so the most neglected project is the first thing
+  you see. Star a project to keep it on top regardless.
 - **Capture costs nothing.** `⌘K` saves an idea or a link to an inbox in one
   field and one keystroke. Deciding where it belongs happens later, in triage.
 - **The next action is a first-class field.** Each project carries exactly one
@@ -28,7 +29,7 @@ So the board is built around three things:
 
 | Route | What it is |
 |---|---|
-| `/` | The board: summary strip plus the dense priority table. Inline-editable, `j`/`k` to move, `/` to filter |
+| `/` | The board: summary strip plus the dense priority table, stalest first with favourites pinned on top. Inline-editable, `j`/`k` to move, `/` to filter |
 | `/p/[slug]` | One project: fields, tasks, ideas, resources, money, activity log — all edited in place |
 | `/inbox` | Triage for captures with no project yet |
 | `/settings` | API tokens, and the command to register the MCP server |

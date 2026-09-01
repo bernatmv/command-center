@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTransition } from 'react'
-import { ArrowLeft, ExternalLink, GitBranch } from 'lucide-react'
+import { ArrowLeft, ExternalLink, GitBranch, Star } from 'lucide-react'
 import { deleteProjectAction, updateProjectAction } from '@/app/actions'
 import { EditableText } from './primitives'
 import { cn } from '@/lib/cn'
@@ -119,10 +119,12 @@ export function ProjectHeader({ project }: { project: ProjectOverview }) {
         <div className="ml-auto flex items-center gap-3">
           <button
             type="button"
-            onClick={() => save({ pinned: !project.pinned })}
-            className={cn('transition-colors', project.pinned ? 'text-accent' : 'text-faint hover:text-text')}
+            onClick={() => save({ favorite: !project.favorite })}
+            className={cn('inline-flex items-center gap-1 transition-colors',
+              project.favorite ? 'text-warn' : 'text-faint hover:text-text')}
           >
-            {project.pinned ? 'Unpin' : 'Pin'}
+            <Star className={cn('size-3', project.favorite && 'fill-warn')} />
+            {project.favorite ? 'Favorite' : 'Add to favorites'}
           </button>
           <button
             type="button"

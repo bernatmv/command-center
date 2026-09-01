@@ -20,14 +20,15 @@ export async function listProjects(ctx: Ctx, input: ProjectFilterInput = {}): Pr
   if (f.stale) q = q.lt('last_touched_at', daysAgoIso(STALE_DAYS))
   if (f.q) q = q.or(`name.ilike.%${f.q}%,tagline.ilike.%${f.q}%,next_action.ilike.%${f.q}%`)
 
-  // Pinned always floats to the top; the chosen sort orders the rest.
-  q = q.order('pinned', { ascending: false })
+  // Favourites always float to the top; the chosen sort orders the rest.
+  q = q.order('favorite', { ascending: false })
   switch (f.sort) {
     // Enum columns sort by declaration order, so ascending priority is p0 first.
     // Within a priority band the stalest project surfaces first — that is the
     // project most at risk of being forgotten.
     case 'priority': q = q.order('priority').order('last_touched_at'); break
-    case 'stale':    q = q.order('last_touched_at'); break
+    // Staleness is derived, so order by what it is derived from.
+    case 'stale':    q = q.order('last_activity_at'); break
     case 'name':     q = q.order('name'); break
     case 'phase':    q = q.order('phase').order('priority'); break
     case 'earnings': q = q.order('monthly_earnings_cents', { ascending: false }); break

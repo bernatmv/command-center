@@ -44,7 +44,7 @@ const projectFields = {
   target_release_date: dateStr.nullish(),
   released_at: dateStr.nullish(),
   tags: z.array(z.string().trim().min(1).max(40)).max(20),
-  pinned: z.boolean(),
+  favorite: z.boolean(),
   notes: optionalText(20000),
   /** "owner/name". Set by the sync, but editable to link a repo by hand. */
   github_repo: z.string().trim().regex(/^[\w.-]+\/[\w.-]+$/, 'expected owner/repo').nullish(),
@@ -58,7 +58,7 @@ export const projectCreateSchema = z.object({
   status: projectFields.status.default('idea'),
   priority: projectFields.priority.default('p2'),
   tags: projectFields.tags.default([]),
-  pinned: projectFields.pinned.default(false),
+  favorite: projectFields.favorite.default(false),
   sync_issues: projectFields.sync_issues.default(true),
 })
 
@@ -74,7 +74,7 @@ export const projectFilterSchema = z.object({
   q: z.string().trim().optional(),
   stale: z.boolean().optional(),
   includeArchived: z.boolean().default(false),
-  sort: z.enum(['priority', 'stale', 'name', 'phase', 'earnings']).default('priority'),
+  sort: z.enum(['priority', 'stale', 'name', 'phase', 'earnings']).default('stale'),
 })
 
 // --------------------------------------------------------------------- tasks

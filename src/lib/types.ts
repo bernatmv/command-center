@@ -46,7 +46,8 @@ export interface Project {
   target_release_date: string | null
   released_at: string | null
   tags: string[]
-  pinned: boolean
+  /** Favourites sit at the top of the board regardless of sort. */
+  favorite: boolean
   notes: string | null
   /** "owner/name", or null for a planning-stage project with no repo yet. */
   github_repo: string | null

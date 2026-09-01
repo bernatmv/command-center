@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ExternalLink, GitBranch, Search, TriangleAlert } from 'lucide-react'
+import { ExternalLink, GitBranch, Search, Star, TriangleAlert } from 'lucide-react'
 import { updateProjectAction } from '@/app/actions'
 import { SyncButton } from '@/components/sync-button'
 import { cn } from '@/lib/cn'
@@ -28,7 +28,7 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
   const [phase, setPhase] = useState<Phase | null>(null)
   const [priority, setPriority] = useState<Priority | null>(null)
   const [staleOnly, setStaleOnly] = useState(false)
-  const [sort, setSort] = useState<Sort>('priority')
+  const [sort, setSort] = useState<Sort>('stale')
   const [cursor, setCursor] = useState(0)
 
   // Inline edits render instantly; the server action reconciles behind them.
@@ -49,12 +49,14 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
 
     const rank = (p: ProjectOverview) => PRIORITIES.indexOf(p.priority)
     return filtered.sort((a, b) => {
-      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
+      // Favourites ignore the sort entirely and stay on top.
+      if (a.favorite !== b.favorite) return a.favorite ? -1 : 1
       switch (sort) {
-        case 'stale': return b.days_stale - a.days_stale
+        case 'priority': return rank(a) - rank(b) || b.days_stale - a.days_stale
         case 'name': return a.name.localeCompare(b.name)
         case 'earnings': return Number(b.monthly_earnings_cents) - Number(a.monthly_earnings_cents)
-        default: return rank(a) - rank(b) || b.days_stale - a.days_stale
+        // Stalest first, with priority breaking ties.
+        default: return b.days_stale - a.days_stale || rank(a) - rank(b)
       }
     })
   }, [projects, overrides, query, phase, priority, staleOnly, sort])
@@ -130,8 +132,8 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
             onChange={(e) => setSort(e.target.value as Sort)}
             className="h-7 px-2 rounded-md bg-panel border border-line outline-none text-muted"
           >
-            <option value="priority">Sort: priority</option>
             <option value="stale">Sort: stalest</option>
+            <option value="priority">Sort: priority</option>
             <option value="earnings">Sort: revenue</option>
             <option value="name">Sort: name</option>
           </select>
@@ -174,7 +176,7 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
                     <div className="flex items-center gap-2">
                       <span className={cn('size-1.5 rounded-full shrink-0', STATUS_DOT[p.status])} />
                       <span className="font-medium truncate">{p.name}</span>
-                      {p.pinned && <span className="text-faint text-[10px]">PIN</span>}
+                      {p.favorite && <Star className="size-3 shrink-0 fill-warn text-warn" />}
                       {p.overdue_tasks > 0 && (
                         <span className="inline-flex items-center gap-1 text-danger text-[10px] shrink-0">
                           <TriangleAlert className="size-3" />{p.overdue_tasks}
