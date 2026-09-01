@@ -24,11 +24,10 @@ export async function listProjects(ctx: Ctx, input: ProjectFilterInput = {}): Pr
   q = q.order('favorite', { ascending: false })
   switch (f.sort) {
     // Enum columns sort by declaration order, so ascending priority is p0 first.
-    // Within a priority band the stalest project surfaces first — that is the
-    // project most at risk of being forgotten.
     case 'priority': q = q.order('priority').order('last_touched_at'); break
+    // Most recently active first, so the stalest sink to the bottom.
     // Staleness is derived, so order by what it is derived from.
-    case 'stale':    q = q.order('last_activity_at'); break
+    case 'activity': q = q.order('last_activity_at', { ascending: false }); break
     case 'name':     q = q.order('name'); break
     case 'phase':    q = q.order('phase').order('priority'); break
     case 'earnings': q = q.order('monthly_earnings_cents', { ascending: false }); break

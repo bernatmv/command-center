@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/cn'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 const LINKS = [
   { href: '/', label: 'Board' },
@@ -54,6 +55,7 @@ export function TopBar({ inboxCount, email }: { inboxCount: number; email?: stri
           Quick capture
           <kbd className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-panel-2 border border-line">⌘K</kbd>
         </button>
+        <ThemeToggle />
         {email && <span className="hidden md:inline text-faint text-xs">{email}</span>}
         <form action="/auth/signout" method="post">
           <button type="submit" className="text-faint hover:text-text transition-colors text-xs">Sign out</button>

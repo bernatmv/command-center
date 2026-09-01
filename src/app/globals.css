@@ -1,12 +1,44 @@
 @import "tailwindcss";
 
 /*
- * Command Center is a private operations console, so it commits to a single
- * dark theme rather than carrying two palettes. Density is the priority:
+ * Command Center is a dense operations console. Density is the priority:
  * small type, tight rows, tabular numerals, colour reserved for signal.
+ *
+ * Both themes define the same token names, so components never branch on
+ * theme — they use `bg-panel`, `text-muted`, `border-line` and get the right
+ * value. Light is the default; `data-theme="dark"` on <html> swaps the values.
  */
 
 @theme {
+  /* Light — the default. */
+  --color-bg: #fbfbfd;
+  --color-panel: #ffffff;
+  --color-panel-2: #f2f4f7;
+  --color-line: #e3e6ec;
+  --color-line-strong: #cbd0da;
+
+  --color-text: #14171d;
+  --color-muted: #5a6474;
+  --color-faint: #8b94a4;
+
+  --color-accent: #4a55d4;
+  --color-ok: #0f7d55;
+  --color-warn: #9a6200;
+  --color-danger: #c22e3c;
+  --color-info: #1667c9;
+  --color-violet: #7136c8;
+  --color-cyan: #0c7f8a;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/*
+ * Dark. Only the palette changes — every colour keeps its meaning, so a stale
+ * project is amber in both themes, just at a luminance that reads on the
+ * surrounding background.
+ */
+:root[data-theme='dark'] {
   --color-bg: #0a0b0e;
   --color-panel: #101218;
   --color-panel-2: #161922;
@@ -24,12 +56,10 @@
   --color-info: #4aa8ff;
   --color-violet: #a97bff;
   --color-cyan: #3fc9d4;
-
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-html { color-scheme: dark; }
+:root { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
 
 body {
   background: var(--color-bg);
@@ -42,7 +72,7 @@ body {
 /* Numbers in the priority table must line up column-to-column. */
 .tnum { font-variant-numeric: tabular-nums; }
 
-::selection { background: color-mix(in srgb, var(--color-accent) 35%, transparent); }
+::selection { background: color-mix(in srgb, var(--color-accent) 25%, transparent); }
 
 *:focus-visible {
   outline: 2px solid var(--color-accent);

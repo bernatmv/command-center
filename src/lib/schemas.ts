@@ -74,7 +74,7 @@ export const projectFilterSchema = z.object({
   q: z.string().trim().optional(),
   stale: z.boolean().optional(),
   includeArchived: z.boolean().default(false),
-  sort: z.enum(['priority', 'stale', 'name', 'phase', 'earnings']).default('stale'),
+  sort: z.enum(['priority', 'activity', 'name', 'phase', 'earnings']).default('activity'),
 })
 
 // --------------------------------------------------------------------- tasks

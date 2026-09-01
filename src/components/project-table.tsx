@@ -12,7 +12,7 @@ import {
 } from '@/lib/display'
 import { PHASES, PRIORITIES, STALE_DAYS, STATUSES, type Phase, type Priority, type ProjectOverview } from '@/lib/types'
 
-type Sort = 'priority' | 'stale' | 'name' | 'earnings'
+type Sort = 'priority' | 'activity' | 'name' | 'earnings'
 
 /**
  * The daily view. One row per project, everything inline-editable, sorted so
@@ -28,7 +28,7 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
   const [phase, setPhase] = useState<Phase | null>(null)
   const [priority, setPriority] = useState<Priority | null>(null)
   const [staleOnly, setStaleOnly] = useState(false)
-  const [sort, setSort] = useState<Sort>('stale')
+  const [sort, setSort] = useState<Sort>('activity')
   const [cursor, setCursor] = useState(0)
 
   // Inline edits render instantly; the server action reconciles behind them.
@@ -52,11 +52,11 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
       // Favourites ignore the sort entirely and stay on top.
       if (a.favorite !== b.favorite) return a.favorite ? -1 : 1
       switch (sort) {
-        case 'priority': return rank(a) - rank(b) || b.days_stale - a.days_stale
+        case 'priority': return rank(a) - rank(b) || a.days_stale - b.days_stale
         case 'name': return a.name.localeCompare(b.name)
         case 'earnings': return Number(b.monthly_earnings_cents) - Number(a.monthly_earnings_cents)
-        // Stalest first, with priority breaking ties.
-        default: return b.days_stale - a.days_stale || rank(a) - rank(b)
+        // Most recently active first, so the stalest sink to the bottom.
+        default: return a.days_stale - b.days_stale || rank(a) - rank(b)
       }
     })
   }, [projects, overrides, query, phase, priority, staleOnly, sort])
@@ -132,7 +132,7 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
             onChange={(e) => setSort(e.target.value as Sort)}
             className="h-7 px-2 rounded-md bg-panel border border-line outline-none text-muted"
           >
-            <option value="stale">Sort: stalest</option>
+            <option value="activity">Sort: activity</option>
             <option value="priority">Sort: priority</option>
             <option value="earnings">Sort: revenue</option>
             <option value="name">Sort: name</option>
@@ -145,7 +145,8 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
         <table className="w-full border-collapse">
           <thead className="sticky top-0 z-10 bg-bg">
             <tr className="text-[10px] uppercase tracking-wider text-faint border-b border-line">
-              <Th className="text-left pl-4">Project</Th>
+              <Th className="w-8 pl-3 pr-0"><span className="sr-only">Favourite</span></Th>
+              <Th className="text-left pl-2">Project</Th>
               <Th className="w-[76px]">Phase</Th>
               <Th className="w-[52px]">Pri</Th>
               <Th className="w-[96px] text-left">Status</Th>
@@ -171,12 +172,26 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
                     p.status === 'abandoned' && 'opacity-45',
                   )}
                 >
+                  <td className="pl-3 pr-0 align-middle" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      onClick={() => patch(p, { favorite: !p.favorite })}
+                      title={p.favorite ? 'Remove from favourites' : 'Add to favourites'}
+                      aria-label={p.favorite ? 'Remove from favourites' : 'Add to favourites'}
+                      className={cn(
+                        'block transition-colors',
+                        p.favorite ? 'text-warn' : 'text-line-strong hover:text-warn',
+                      )}
+                    >
+                      <Star className={cn('size-3.5', p.favorite && 'fill-warn')} />
+                    </button>
+                  </td>
+
                   {/* name + the single next action */}
-                  <td className="pl-4 py-1.5 min-w-0">
+                  <td className="pl-2 py-1.5 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className={cn('size-1.5 rounded-full shrink-0', STATUS_DOT[p.status])} />
                       <span className="font-medium truncate">{p.name}</span>
-                      {p.favorite && <Star className="size-3 shrink-0 fill-warn text-warn" />}
                       {p.overdue_tasks > 0 && (
                         <span className="inline-flex items-center gap-1 text-danger text-[10px] shrink-0">
                           <TriangleAlert className="size-3" />{p.overdue_tasks}
@@ -234,7 +249,7 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
                   </td>
 
                   <td className="pr-4" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-1.5">
                       {p.repo_url && <IconLink href={p.repo_url}><GitBranch className="size-3.5" /></IconLink>}
                       {p.prod_url && <IconLink href={p.prod_url}><ExternalLink className="size-3.5" /></IconLink>}
                     </div>
