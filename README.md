@@ -1,51 +1,136 @@
 # Command Center
 
-Tools for managing AI-built projects — keeping their roadmap, progress, and state visible at a glance.
+A private portfolio dashboard for running many projects at once without losing
+track of any of them. One screen shows every project, its phase, its priority,
+what the next action is, how long since anything happened to it, and what it
+earns and costs. Everything is editable from the UI, a REST API, or MCP — so
+Claude can read and update the board directly.
 
-The first tool here is a **prompt** you paste into Claude Code (or any capable coding agent) inside any repo. It inspects the project and builds a **Project Command Center**: a living, visual dashboard that tells any developer, product owner, client, or AI agent what the project _is_, what's _built_, what's _in progress_, and what's _next_ — without reading the whole codebase.
+Single user. Next.js on Vercel, Postgres on Supabase.
 
-## 🚀 Live example
+## Why it exists
 
-A static Command Center for a fictional AI product (**Forkcast**, an AI meal-planning copilot):
+Running a lot of projects alone, the failure mode isn't building — it's
+forgetting. A project goes quiet, marketing stops, and an idea or a link
+evaporates because there was nowhere to put it in the five seconds available.
 
-**▶ https://bernatmv.github.io/command-center/**
+So the board is built around three things:
 
-Source for it lives in [`example/`](./example/).
+- **Staleness is loud.** Every write bumps `last_touched_at`. Projects nothing
+  has touched for 10 days turn amber, 30 days turn red. It is a column, not a
+  buried detail.
+- **Capture costs nothing.** `⌘K` saves an idea or a link to an inbox in one
+  field and one keystroke. Deciding where it belongs happens later, in triage.
+- **The next action is a first-class field.** Each project carries exactly one
+  `next_action`, shown inline on the board.
 
-## What's in this repo
+## Screens
 
-| Path | What it is |
-|------|------------|
-| [`claude_project_command_center_prompt.md`](./claude_project_command_center_prompt.md) | The prompt. Copy-paste into your project and the agent builds + maintains the dashboard. |
-| [`example/`](./example/) | A fully worked, zero-dependency example dashboard (the live demo above). |
-| [`.github/workflows/deploy-pages.yml`](./.github/workflows/deploy-pages.yml) | Publishes `example/` to GitHub Pages. |
+| Route | What it is |
+|---|---|
+| `/` | The board: summary strip plus the dense priority table. Inline-editable, `j`/`k` to move, `/` to filter |
+| `/p/[slug]` | One project: fields, tasks, ideas, resources, money, activity log — all edited in place |
+| `/inbox` | Triage for captures with no project yet |
+| `/settings` | API tokens, and the command to register the MCP server |
 
-## How to use the prompt
+## Architecture
 
-1. Open your project in Claude Code.
-2. Copy the contents of [`claude_project_command_center_prompt.md`](./claude_project_command_center_prompt.md) and paste it in.
-3. The agent inspects your repo and builds a Command Center with:
-   - **Project overview** — what it is, phase, target users, value prop
-   - **Roadmap** — phases with status + progress
-   - **Feature matrix** — features by area, status, priority, tests
-   - **Current focus** — what to work on next, blockers
-   - **Architecture map**, **PRD/specs tracker**, **decisions log**
-   - **Risks & blockers**, **notes for AI agents**, **changelog**
-4. It renders from a single structured data file, so updates are easy.
-5. It also adds an instruction to your `CLAUDE.md`/`AGENTS.md` so future sessions keep the dashboard accurate.
+The point of the layout is that **UI, REST, and MCP share one implementation**.
 
-The prompt adapts to your stack: if you have a web app, the dashboard becomes an internal route; if not, it produces the zero-build static page that the [`example/`](./example/) demonstrates.
+```
+src/lib/schemas.ts    Zod schemas — the only definition of valid input
+src/lib/core/*.ts     All business logic. Takes a Supabase client + input.
+      │
+      ├── src/app/(app)/**       Server Components + Server Actions
+      ├── src/app/api/**         REST, session- or token-authed
+      └── src/app/api/mcp        MCP tools over Streamable HTTP
+```
 
-## Deploying your own to GitHub Pages
+Because every mutation funnels through core, every write — from any surface —
+also bumps the project's last-touched time and appends to its activity log.
+That is what makes the staleness signal trustworthy.
 
-The included workflow publishes the static `example/` folder. To publish it (or your own generated dashboard):
+## Setup
 
-1. Push to `main`.
-2. In your repo: **Settings → Pages → Source: GitHub Actions**.
-3. The workflow deploys on every push that touches `example/`. The URL appears in the Actions run and under Settings → Pages.
+### 1. Supabase
 
-To deploy a dashboard from a different folder, change the `path:` in [`deploy-pages.yml`](./.github/workflows/deploy-pages.yml).
+Create a project at [supabase.com](https://supabase.com), then:
 
-## Why
+```bash
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF
+pnpm db:push          # applies supabase/migrations
+pnpm db:seed          # optional sample portfolio (sign in once first)
+```
 
-Projects built largely by AI lose state fast — context windows reset, decisions get forgotten, and "what's left?" becomes expensive to answer. A Command Center makes the current state a first-class, always-current artifact that both humans and future AI sessions can read in seconds.
+Enable **GitHub** under Authentication → Providers, using a GitHub OAuth app
+whose callback URL is `https://YOUR_PROJECT.supabase.co/auth/v1/callback`.
+
+### 2. Environment
+
+Copy `.env.example` to `.env.local` and fill it in:
+
+| Variable | Where it comes from |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same page |
+| `SUPABASE_SERVICE_ROLE_KEY` | same page — server-only, never exposed to the browser |
+| `ALLOWED_EMAIL` | the single GitHub account allowed to sign in |
+| `NEXT_PUBLIC_SITE_URL` | production URL; leave unset locally |
+
+### 3. Run
+
+```bash
+pnpm dev
+```
+
+### 4. Deploy
+
+Import the repo on Vercel, set the same environment variables, and add the
+deployed URL to Supabase → Authentication → URL Configuration.
+
+## Access control
+
+Two independent layers, so neither is load-bearing alone:
+
+- **RLS.** Every table carries a `user_id` and a policy of `auth.uid() = user_id`.
+  The dashboard view is `security_invoker`, so it inherits the same rules.
+- **An email gate.** `/auth/callback` signs out any account whose email isn't
+  `ALLOWED_EMAIL`, so publishing the OAuth app can't hand anyone else a session.
+
+API tokens are stored only as SHA-256 hashes and compared in constant time.
+
+## REST API
+
+Authenticate with `Authorization: Bearer <token>` (created in Settings) or a
+browser session. Responses are `{ "data": ... }`, errors `{ "error": ... }`.
+
+| Method | Path |
+|---|---|
+| `GET` `POST` | `/api/projects` |
+| `GET` `PATCH` `DELETE` | `/api/projects/[slug]` |
+| `GET` `POST` | `/api/tasks` · `/api/ideas` · `/api/resources` · `/api/money` |
+| `PATCH` `DELETE` | `/api/tasks/[id]` · `/api/ideas/[id]` · `/api/resources/[id]` · `/api/money/[id]` |
+| `GET` | `/api/briefing` |
+
+```bash
+curl -H "Authorization: Bearer $CC_TOKEN" https://your-app.vercel.app/api/briefing
+```
+
+## MCP
+
+Register once, then Claude can read and edit the whole board:
+
+```bash
+claude mcp add --transport http command-center \
+  https://your-app.vercel.app/api/mcp \
+  --header "Authorization: Bearer YOUR_TOKEN"
+```
+
+Tools: `portfolio_briefing`, `list_projects`, `get_project`, `create_project`,
+`update_project`, `list_tasks`, `add_task`, `complete_task`, `capture_idea`,
+`capture_resource`, `record_money`, `log_update`.
+
+`portfolio_briefing` is the one to reach for first — it returns what is stale,
+what is overdue, and which projects most deserve attention, with the reason for
+each.

@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+/*
+ * Command Center is a private operations console, so it commits to a single
+ * dark theme rather than carrying two palettes. Density is the priority:
+ * small type, tight rows, tabular numerals, colour reserved for signal.
+ */
+
+@theme {
+  --color-bg: #0a0b0e;
+  --color-panel: #101218;
+  --color-panel-2: #161922;
+  --color-line: #222634;
+  --color-line-strong: #313749;
+
+  --color-text: #e7eaf0;
+  --color-muted: #8b94a8;
+  --color-faint: #5a6274;
+
+  --color-accent: #7c8cff;
+  --color-ok: #34c98a;
+  --color-warn: #e9a63c;
+  --color-danger: #f2606d;
+  --color-info: #4aa8ff;
+  --color-violet: #a97bff;
+  --color-cyan: #3fc9d4;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html { color-scheme: dark; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Numbers in the priority table must line up column-to-column. */
+.tnum { font-variant-numeric: tabular-nums; }
+
+::selection { background: color-mix(in srgb, var(--color-accent) 35%, transparent); }
+
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+/* Slim scrollbars — the table is the star, not its chrome. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border: 3px solid var(--color-bg);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-faint); }
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+.pulse { animation: pulse-dot 2s ease-in-out infinite; }
