@@ -40,7 +40,6 @@ export interface Project {
   status: Status
   priority: Priority
   next_action: string | null
-  success_score: number | null
   repo_url: string | null
   prod_url: string | null
   target_release_date: string | null

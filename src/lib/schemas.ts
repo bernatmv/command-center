@@ -38,7 +38,6 @@ const projectFields = {
   status: z.enum(STATUSES),
   priority: z.enum(PRIORITIES),
   next_action: optionalText(300),
-  success_score: z.number().int().min(0).max(100).nullish(),
   repo_url: z.url().nullish(),
   prod_url: z.url().nullish(),
   target_release_date: dateStr.nullish(),

@@ -124,7 +124,7 @@ async function uniqueSlug(ctx: Ctx, base: string, excludeId?: string): Promise<s
 function describeChange(patch: Record<string, unknown>): string | undefined {
   const fields = Object.keys(patch).filter((k) => patch[k] !== undefined)
   if (fields.length === 0) return undefined
-  const notable = ['phase', 'status', 'priority', 'next_action', 'success_score', 'archived_at']
+  const notable = ['phase', 'status', 'priority', 'next_action', 'archived_at']
     .filter((k) => fields.includes(k))
     .map((k) => `${k} → ${String(patch[k])}`)
   return notable.length ? `Updated ${notable.join(', ')}` : `Updated ${fields.join(', ')}`

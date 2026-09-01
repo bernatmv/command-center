@@ -82,9 +82,6 @@ export function ProjectHeader({ project }: { project: ProjectOverview }) {
         <Meta label="Released">
           <EditableDate value={project.released_at} onSave={(v) => save({ released_at: v })} />
         </Meta>
-        <Meta label="Success">
-          <ScoreBar value={project.success_score} onChange={(success_score) => save({ success_score })} />
-        </Meta>
         <Meta label="Repo">
           <UrlField value={project.repo_url} icon={<GitBranch className="size-3" />} onSave={(repo_url) => save({ repo_url })} />
         </Meta>
@@ -194,23 +191,3 @@ function UrlField({ value, icon, onSave }: { value: string | null; icon: React.R
   )
 }
 
-/** 0–100 "how well is this actually going", nudged in steps of 10. */
-function ScoreBar({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
-  const score = value ?? 0
-  const tone = score >= 70 ? 'bg-ok' : score >= 40 ? 'bg-warn' : 'bg-danger'
-
-  return (
-    <span className="inline-flex items-center gap-2">
-      <span className="w-16 h-1.5 rounded-full bg-line overflow-hidden">
-        <span className={cn('block h-full rounded-full transition-all', tone)} style={{ width: `${score}%` }} />
-      </span>
-      <input
-        type="range" min={0} max={100} step={10} value={score}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-16 accent-accent"
-        aria-label="Success score"
-      />
-      <span className="tnum text-muted w-7">{value === null ? '—' : `${score}`}</span>
-    </span>
-  )
-}

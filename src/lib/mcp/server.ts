@@ -76,7 +76,7 @@ export function buildServer(ctx: Ctx): McpServer {
         open_tasks: p.open_tasks, overdue_tasks: p.overdue_tasks,
         monthly_earnings_cents: Number(p.monthly_earnings_cents),
         monthly_cost_cents: Number(p.monthly_cost_cents),
-        success_score: p.success_score, tags: p.tags,
+        tags: p.tags,
         prod_url: p.prod_url, repo_url: p.repo_url,
         target_release_date: p.target_release_date,
       })))
@@ -108,7 +108,7 @@ export function buildServer(ctx: Ctx): McpServer {
     {
       title: 'Update project',
       description:
-        'Change any field on a project — phase, status, priority, next action, URLs, success score, release dates, tags, notes. Only pass the fields you want changed.',
+        'Change any field on a project — phase, status, priority, next action, URLs, release dates, tags, notes. Only pass the fields you want changed.',
       inputSchema: projectUpdateSchema.extend({ project: projectRef }),
     },
     async ({ project, ...patch }) => json(await updateProject(ctx, project, patch as never)),
