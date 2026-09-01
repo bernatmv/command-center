@@ -10,8 +10,8 @@
  * versions, leaving everyone else's history untouched.
  *
  *   node scripts/db.mjs push   # apply pending migrations from supabase/migrations
- *   node scripts/db.mjs seed   # run supabase/seed.sql
  *   node scripts/db.mjs status # show which of our migrations are applied
+ *   node scripts/db.mjs sync   # trigger a GitHub sync against the local server
  */
 import { readFileSync, readdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
@@ -88,15 +88,26 @@ const commands = {
     }
   },
 
-  async seed() {
-    const out = await query(readFileSync('supabase/seed.sql', 'utf8'))
-    console.log('Seed applied.', Array.isArray(out) && out.length ? out : '')
+  /** Fires the same endpoint Vercel Cron calls, against the local dev server. */
+  async sync() {
+    const secret = process.env.CRON_SECRET
+      ?? (readFileSync('.env.local', 'utf8').match(/^CRON_SECRET=(.+)$/m) ?? [])[1]
+    if (!secret) throw new Error('CRON_SECRET not found in env or .env.local')
+
+    const res = await fetch('http://localhost:3100/api/cron/sync', {
+      headers: { Authorization: `Bearer ${secret.trim()}` },
+    })
+    const body = await res.json()
+    if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`)
+    const r = body.data
+    console.log(`${r.repos_seen} repos · +${r.projects_created.length} projects · +${r.tasks_created} tasks · ${r.tasks_closed} closed`)
+    for (const e of r.errors) console.error('  !', e)
   },
 }
 
 const command = process.argv[2] ?? 'status'
 if (!commands[command]) {
-  console.error(`Unknown command "${command}". Use: push | seed | status`)
+  console.error(`Unknown command "${command}". Use: push | status | sync`)
   process.exit(1)
 }
 await commands[command]().catch((error) => {

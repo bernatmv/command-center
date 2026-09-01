@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { ExternalLink, GitBranch, Search, TriangleAlert } from 'lucide-react'
 import { updateProjectAction } from '@/app/actions'
+import { SyncButton } from '@/components/sync-button'
 import { cn } from '@/lib/cn'
 import {
   PHASE_COLOR, PHASE_LABEL, PRIORITY_COLOR, PRIORITY_LABEL,
@@ -122,6 +123,7 @@ export function ProjectTable({ projects }: { projects: ProjectOverview[] }) {
         ))}
 
         <div className="ml-auto flex items-center gap-2 shrink-0 pl-2">
+          <SyncButton />
           <span className="text-faint tnum">{rows.length}/{projects.length}</span>
           <select
             value={sort}

@@ -60,6 +60,25 @@ The `project_overview` view supplies the dashboard's aggregates (task counts,
 normalised monthly money, `days_stale`) in one query. Extend the view rather
 than adding per-row queries to the board.
 
+## GitHub sync
+
+`src/lib/github/` holds the integration: `client.ts` (API calls), `sync.ts`
+(GitHub → app), `push.ts` (app → GitHub). Two rules matter:
+
+- **The sync must never write `last_touched_at`.** That column means "you did
+  something". A job running hourly that stamped it would make every project look
+  permanently fresh and silently destroy the staleness signal. Repo activity
+  goes in `last_commit_at`; the view takes the later of the two.
+- **Push lives behind core, not in the surfaces.** `addTask`/`updateTask`/
+  `deleteTask` call into `push.ts`, so a task created from the UI, the REST API,
+  or an MCP tool all mirror to an issue identically. Nothing in `push.ts` is
+  allowed to throw at its caller — a GitHub outage must not fail a task edit;
+  failures land on the project's activity log.
+
+Issue fetching uses GraphQL, not REST. The REST `/issues` endpoint returns pull
+requests alongside issues, and on a PR-heavy repo they crowd the open issues out
+of the first page entirely.
+
 ## Conventions
 
 - Dark theme only; tokens are defined in `src/app/globals.css` under `@theme`.

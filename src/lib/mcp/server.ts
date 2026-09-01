@@ -8,6 +8,7 @@ import { captureResource } from '@/lib/core/resources'
 import { recordMoney } from '@/lib/core/money'
 import { logUpdate } from '@/lib/core/log'
 import { portfolioBriefing } from '@/lib/core/briefing'
+import { syncGitHub } from '@/lib/github/sync'
 import { moneyCreateSchema, projectCreateSchema, projectUpdateSchema } from '@/lib/schemas'
 import { MONEY_CADENCES, MONEY_KINDS, PRIORITIES, RESOURCE_KINDS, TASK_STATUSES } from '@/lib/types'
 
@@ -35,6 +36,20 @@ export function buildServer(ctx: Ctx): McpServer {
       inputSchema: z.object({ limit: z.number().int().min(1).max(20).default(5) }),
     },
     async ({ limit }) => json(await portfolioBriefing(ctx, limit)),
+  )
+
+  server.registerTool(
+    'sync_github',
+    {
+      title: 'Sync GitHub',
+      description:
+        'Pull GitHub into the board: repos pushed recently become projects, and their open issues become tasks. Also refreshes each project\'s last-commit time, which feeds the staleness signal. Runs hourly on its own; call this to force it.',
+      inputSchema: z.object({
+        days: z.number().int().min(1).max(365).default(90)
+          .describe('How far back a repo must have been pushed to count as active'),
+      }),
+    },
+    async ({ days }) => json(await syncGitHub(ctx, days)),
   )
 
   server.registerTool(

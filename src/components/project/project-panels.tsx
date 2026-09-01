@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, ExternalLink, Trash2, Wand2 } from 'lucide-react'
+import { Check, CircleDot, ExternalLink, Trash2, Wand2 } from 'lucide-react'
 import {
   addTaskAction, captureIdeaAction, captureResourceAction, convertIdeaAction, deleteIdeaAction,
   deleteMoneyAction, deleteResourceAction, deleteTaskAction, logUpdateAction,
@@ -78,6 +78,16 @@ export function TaskPanel({ slug, projectId, tasks }: { slug: string; projectId:
           className={cn('bg-transparent outline-none tnum text-[11px] w-[92px]', overdue ? 'text-danger' : 'text-faint')}
           aria-label="Due date"
         />
+
+        {task.github_url && (
+          <a
+            href={task.github_url} target="_blank" rel="noreferrer"
+            title={`Issue #${task.github_issue_number}`}
+            className="text-faint hover:text-accent transition-colors shrink-0"
+          >
+            <CircleDot className="size-3.5" />
+          </a>
+        )}
 
         <DeleteButton onClick={() => run(() => deleteTaskAction(slug, task.id))} />
       </li>

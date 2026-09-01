@@ -65,7 +65,6 @@ supabase login
 supabase link --project-ref gqknhdnmakqmumxkpinw
 pnpm db:status        # which of our migrations are applied
 pnpm db:push          # apply pending ones
-pnpm db:seed          # optional sample portfolio (sign in once first)
 ```
 
 `pnpm db:*` runs `scripts/db.mjs`, not `supabase db push`. The project's
@@ -110,6 +109,44 @@ Port 3100, not 3000 — 3000 is usually taken by another local app.
 Import the repo on Vercel, set the same environment variables plus
 `NEXT_PUBLIC_SITE_URL`, and add the deployed URL to the Mini Apps project under
 Authentication → URL Configuration (redirect allow list).
+
+## GitHub sync
+
+The board fills itself from GitHub. Every repo you own that has been pushed in
+the last 90 days becomes a project (forks excluded), and its open issues become
+tasks.
+
+**Staleness counts commits.** `days_stale` measures from the later of
+`last_touched_at` (you did something in the app) and `last_commit_at` (you
+pushed to the repo). A repo you are actively developing never reads as
+abandoned just because you haven't opened the dashboard — and equally, a project
+with no repo still goes stale if you ignore it.
+
+**Tasks and issues stay in step, both ways.**
+
+| In the app | On GitHub |
+|---|---|
+| Add a task | Issue opened, linked back to the task |
+| Rename a task | Issue renamed |
+| Complete a task | Issue closed |
+| Reopen a task | Issue reopened |
+| Delete a task | Issue closed with a comment saying why |
+| — | Issue opened → task appears |
+| — | Issue closed → task marked done |
+
+On a pull, GitHub wins: the app pushes its own changes the moment they happen,
+so anything different on GitHub by sync time is news. Pushes are best-effort —
+if GitHub is unreachable the task edit still succeeds, and the failure is
+recorded on the project's activity log rather than thrown at you.
+
+Syncing is per-project (`sync_issues`, on by default, toggled on the project
+page) so a project whose tasks are marketing chores doesn't litter its repo.
+Projects without a repo — ideas at the planning stage — work exactly as before.
+
+**When it runs.** Hourly, via a Vercel Cron hitting `/api/cron/sync` (see
+`vercel.json`), authenticated with `CRON_SECRET`. Force it with the **Sync**
+button on the board, `pnpm sync` locally, `POST /api/sync`, or the
+`sync_github` MCP tool.
 
 ## Access control
 

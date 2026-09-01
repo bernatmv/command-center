@@ -48,6 +48,13 @@ export interface Project {
   tags: string[]
   pinned: boolean
   notes: string | null
+  /** "owner/name", or null for a planning-stage project with no repo yet. */
+  github_repo: string | null
+  /** Last push to the repo. Counts as activity alongside in-app edits. */
+  last_commit_at: string | null
+  github_synced_at: string | null
+  /** Whether this project's tasks mirror to GitHub issues. */
+  sync_issues: boolean
   last_touched_at: string
   archived_at: string | null
   created_at: string
@@ -56,6 +63,8 @@ export interface Project {
 
 /** `projects` plus the aggregates the dashboard table needs, from the SQL view. */
 export interface ProjectOverview extends Project {
+  /** The later of last_touched_at and last_commit_at — what days_stale counts from. */
+  last_activity_at: string
   open_tasks: number
   total_tasks: number
   overdue_tasks: number
@@ -77,6 +86,8 @@ export interface Task {
   due_date: string | null
   done_at: string | null
   position: number
+  github_issue_number: number | null
+  github_url: string | null
   created_at: string
   updated_at: string
 }

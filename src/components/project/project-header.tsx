@@ -68,8 +68,13 @@ export function ProjectHeader({ project }: { project: ProjectOverview }) {
       </div>
 
       <div className="px-6 py-2 border-t border-line flex flex-wrap items-center gap-x-6 gap-y-1.5 text-xs">
-        <Meta label="Last touched">
+        <Meta label="Last activity">
           <span className={stale.className}>{formatStale(project.days_stale)} ago</span>
+          {project.last_commit_at && (
+            <span className="text-faint text-[10px]">
+              {new Date(project.last_commit_at) > new Date(project.last_touched_at) ? '(commit)' : '(in app)'}
+            </span>
+          )}
         </Meta>
         <Meta label="Target">
           <EditableDate value={project.target_release_date} onSave={(v) => save({ target_release_date: v })} />
@@ -83,6 +88,22 @@ export function ProjectHeader({ project }: { project: ProjectOverview }) {
         <Meta label="Repo">
           <UrlField value={project.repo_url} icon={<GitBranch className="size-3" />} onSave={(repo_url) => save({ repo_url })} />
         </Meta>
+        {project.github_repo && (
+          <Meta label="Issues">
+            <label className="inline-flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={project.sync_issues}
+                onChange={(e) => save({ sync_issues: e.target.checked })}
+                className="accent-accent"
+              />
+              <span className="text-muted">
+                {project.sync_issues ? 'syncing' : 'not syncing'}
+                <span className="text-faint"> · {project.github_repo}</span>
+              </span>
+            </label>
+          </Meta>
+        )}
         <Meta label="Live">
           <UrlField value={project.prod_url} icon={<ExternalLink className="size-3" />} onSave={(prod_url) => save({ prod_url })} />
         </Meta>

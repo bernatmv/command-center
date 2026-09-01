@@ -46,6 +46,9 @@ const projectFields = {
   tags: z.array(z.string().trim().min(1).max(40)).max(20),
   pinned: z.boolean(),
   notes: optionalText(20000),
+  /** "owner/name". Set by the sync, but editable to link a repo by hand. */
+  github_repo: z.string().trim().regex(/^[\w.-]+\/[\w.-]+$/, 'expected owner/repo').nullish(),
+  sync_issues: z.boolean(),
 }
 
 export const projectCreateSchema = z.object({
@@ -56,6 +59,7 @@ export const projectCreateSchema = z.object({
   priority: projectFields.priority.default('p2'),
   tags: projectFields.tags.default([]),
   pinned: projectFields.pinned.default(false),
+  sync_issues: projectFields.sync_issues.default(true),
 })
 
 /** Every field optional — used for inline edits, where one cell changes at a time. */

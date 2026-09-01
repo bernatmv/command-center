@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit",
     "check": "pnpm run typecheck && pnpm run lint",
     "db:push": "node scripts/db.mjs push",
-    "db:seed": "node scripts/db.mjs seed",
-    "db:status": "node scripts/db.mjs status"
+    "db:status": "node scripts/db.mjs status",
+    "sync": "node scripts/db.mjs sync"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",

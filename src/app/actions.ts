@@ -10,6 +10,7 @@ import { captureResource, updateResource, deleteResource } from '@/lib/core/reso
 import { recordMoney, deleteMoney } from '@/lib/core/money'
 import { logUpdate } from '@/lib/core/log'
 import { createToken, revokeToken } from '@/lib/core/tokens'
+import { syncGitHub } from '@/lib/github/sync'
 import type { IdeaCreate, MoneyCreate, ProjectCreate, ProjectUpdate, ResourceCreate, TaskCreate, TaskUpdate } from '@/lib/schemas'
 
 /**
@@ -107,6 +108,12 @@ export async function deleteMoneyAction(slug: string, id: string) {
 export async function logUpdateAction(slug: string, projectId: string, body: string) {
   await logUpdate(await requireCtx(), { project_id: projectId, body })
   refresh(slug)
+}
+
+export async function syncGitHubAction() {
+  const report = await syncGitHub(await requireCtx())
+  refresh()
+  return report
 }
 
 export async function createTokenAction(name: string) {
