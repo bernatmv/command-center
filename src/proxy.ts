@@ -3,11 +3,12 @@ import { createServerClient } from '@supabase/ssr'
 
 /**
  * Refreshes the Supabase session cookie on every request and gates the pages.
+ * (Next 16 renamed the `middleware` file convention to `proxy`.)
  *
  * API routes are excluded: they authenticate themselves, since they also accept
  * bearer tokens from the MCP endpoint and scripts.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
 
   const supabase = createServerClient(
