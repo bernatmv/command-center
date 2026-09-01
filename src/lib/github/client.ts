@@ -58,32 +58,55 @@ export interface GhRepo {
 }
 
 /**
- * Repos the user owns that have been pushed within `days`.
+ * Every repo the user owns, newest push first.
  *
- * One GraphQL call rather than REST pagination, because it also gives the open
- * issue count — which lets the sync skip fetching issues for the ~40 repos
- * that have none.
+ * GraphQL rather than REST because it also gives the open issue count, which
+ * lets the sync skip fetching issues for the many repos that have none.
+ * Paginated: the onboarding list reaches the whole back catalogue, not just
+ * whatever fits in one page.
  */
-export async function listActiveRepos(days: number): Promise<GhRepo[]> {
+export async function listRepos(): Promise<GhRepo[]> {
   type Node = Omit<GhRepo, 'openIssueCount'> & { issues: { totalCount: number } }
-  const data = await graphql<{ viewer: { repositories: { nodes: Node[] } } }>(`
-    query {
-      viewer {
-        repositories(first: 100, orderBy: {field: PUSHED_AT, direction: DESC}, affiliations: [OWNER]) {
-          nodes {
-            nameWithOwner name description url homepageUrl
-            isFork isArchived isPrivate pushedAt
-            issues(states: OPEN) { totalCount }
-          }
-        }
-      }
+  type Page = {
+    viewer: {
+      repositories: { nodes: Node[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } }
     }
-  `)
+  }
 
+  const all: GhRepo[] = []
+  let after: string | null = null
+
+  // Bounded so a pagination bug can't spin forever.
+  for (let page = 0; page < 20; page++) {
+    const data: Page = await graphql<Page>(
+      `query($after: String) {
+         viewer {
+           repositories(first: 100, after: $after, orderBy: {field: PUSHED_AT, direction: DESC}, affiliations: [OWNER]) {
+             nodes {
+               nameWithOwner name description url homepageUrl
+               isFork isArchived isPrivate pushedAt
+               issues(states: OPEN) { totalCount }
+             }
+             pageInfo { hasNextPage endCursor }
+           }
+         }
+       }`,
+      { after },
+    )
+
+    const { nodes, pageInfo } = data.viewer.repositories
+    all.push(...nodes.map(({ issues, ...rest }) => ({ ...rest, openIssueCount: issues.totalCount })))
+    if (!pageInfo.hasNextPage) break
+    after = pageInfo.endCursor
+  }
+
+  return all
+}
+
+/** Repos pushed within `days` — what the scheduled sync considers live. */
+export const activeRepos = (repos: GhRepo[], days: number) => {
   const cutoff = Date.now() - days * 86_400_000
-  return data.viewer.repositories.nodes
-    .filter((r) => new Date(r.pushedAt).getTime() > cutoff)
-    .map(({ issues, ...rest }) => ({ ...rest, openIssueCount: issues.totalCount }))
+  return repos.filter((r) => new Date(r.pushedAt).getTime() > cutoff)
 }
 
 export interface GhIssue {

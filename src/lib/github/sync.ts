@@ -1,7 +1,7 @@
 import { shape, type Ctx } from '@/lib/core/context'
 import { slugify } from '@/lib/schemas'
 import type { Project, Task } from '@/lib/types'
-import { humanizeRepoName, listActiveRepos, listIssues, type GhIssue, type GhRepo } from './client'
+import { activeRepos, humanizeRepoName, listIssues, listRepos, type GhIssue, type GhRepo } from './client'
 
 export interface SyncReport {
   ran_at: string
@@ -33,7 +33,7 @@ export async function syncGitHub(ctx: Ctx, days = ACTIVE_WINDOW_DAYS): Promise<S
   }
 
   // Forks aren't the user's projects.
-  const repos = (await listActiveRepos(days)).filter((r) => !r.isFork)
+  const repos = activeRepos(await listRepos(), days).filter((r) => !r.isFork)
   report.repos_seen = repos.length
 
   const { data: existingRows } = await ctx.db
@@ -49,7 +49,7 @@ export async function syncGitHub(ctx: Ctx, days = ACTIVE_WINDOW_DAYS): Promise<S
         await updateFromRepo(ctx, project, repo)
         report.projects_updated++
       } else {
-        const created = await createFromRepo(ctx, repo)
+        const created = await createProjectFromRepo(ctx, repo)
         existing.set(repo.nameWithOwner, created)
         report.projects_created.push(created.slug)
       }
@@ -58,13 +58,24 @@ export async function syncGitHub(ctx: Ctx, days = ACTIVE_WINDOW_DAYS): Promise<S
     }
   }
 
-  await syncIssues(ctx, repos, existing, report)
+  const pairs = repos
+    .map((repo) => ({ repo, project: existing.get(repo.nameWithOwner) }))
+    .filter((p): p is { repo: GhRepo; project: Project } => Boolean(p.project))
+
+  await syncIssuesFor(ctx, pairs, report)
   return report
 }
 
+export const emptyReport = (): SyncReport => ({
+  ran_at: new Date().toISOString(),
+  repos_seen: 0, projects_created: [], projects_updated: 0,
+  tasks_created: 0, tasks_closed: 0, tasks_reopened: 0, errors: [],
+})
+
 // ------------------------------------------------------------------ projects
 
-async function createFromRepo(ctx: Ctx, repo: GhRepo): Promise<Project> {
+/** Shared by the scheduled sync and by manual onboarding. */
+export async function createProjectFromRepo(ctx: Ctx, repo: GhRepo): Promise<Project> {
   // A published homepage is decent evidence the thing actually shipped.
   const shipped = Boolean(repo.homepageUrl)
 
@@ -100,8 +111,8 @@ async function updateFromRepo(ctx: Ctx, project: Project, repo: GhRepo) {
 
 // --------------------------------------------------------------------- issues
 
-async function syncIssues(
-  ctx: Ctx, repos: GhRepo[], projects: Map<string, Project>, report: SyncReport,
+export async function syncIssuesFor(
+  ctx: Ctx, pairs: { repo: GhRepo; project: Project }[], report: SyncReport,
 ) {
   // Existing links tell us which repos to check even when they have no open
   // issues left — that is how a task learns its issue was closed on GitHub.
@@ -110,9 +121,8 @@ async function syncIssues(
   const linked = shape<Task[]>(linkedRows ?? [])
   const projectsWithLinks = new Set(linked.map((t) => t.project_id))
 
-  for (const repo of repos) {
-    const project = projects.get(repo.nameWithOwner)
-    if (!project || !project.sync_issues) continue
+  for (const { repo, project } of pairs) {
+    if (!project.sync_issues) continue
     if (repo.openIssueCount === 0 && !projectsWithLinks.has(project.id)) continue
 
     try {

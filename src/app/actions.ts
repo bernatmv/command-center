@@ -11,6 +11,7 @@ import { recordMoney, deleteMoney } from '@/lib/core/money'
 import { logUpdate } from '@/lib/core/log'
 import { createToken, revokeToken } from '@/lib/core/tokens'
 import { syncGitHub } from '@/lib/github/sync'
+import { onboardRepos } from '@/lib/core/repos'
 import type { IdeaCreate, MoneyCreate, ProjectCreate, ProjectUpdate, ResourceCreate, TaskCreate, TaskUpdate } from '@/lib/schemas'
 
 /**
@@ -113,6 +114,13 @@ export async function logUpdateAction(slug: string, projectId: string, body: str
 export async function syncGitHubAction() {
   const report = await syncGitHub(await requireCtx())
   refresh()
+  return report
+}
+
+export async function onboardReposAction(repos: string[]) {
+  const report = await onboardRepos(await requireCtx(), repos)
+  refresh()
+  revalidatePath('/onboard')
   return report
 }
 

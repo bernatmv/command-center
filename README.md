@@ -34,6 +34,7 @@ So the board is built around three things:
 | `/` | The board: summary strip plus the dense priority table, most recently active first with favourites on top. Inline-editable, `j`/`k` to move, `/` to filter |
 | `/p/[slug]` | One project: fields, tasks, ideas, resources, money, activity log — all edited in place |
 | `/inbox` | Triage for captures with no project yet |
+| `/onboard` | Repos on GitHub with no project yet — pick which to bring onto the board |
 | `/settings` | API tokens, and the command to register the MCP server |
 
 ## Architecture
@@ -150,6 +151,12 @@ Projects without a repo — ideas at the planning stage — work exactly as befo
 `vercel.json`), authenticated with `CRON_SECRET`. Force it with the **Sync**
 button on the board, `pnpm sync` locally, `POST /api/sync`, or the
 `sync_github` MCP tool.
+
+**Older repos.** The sync deliberately only reaches the last 90 days, so a repo
+you haven't touched in a year never appears on its own. `/onboard` lists every
+repo with no project — mostly the back catalogue — and adds the ones you pick,
+pulling their issues immediately. Anything still inside the 90-day window is
+flagged `auto` there, because the next sync would import it anyway.
 
 ## Access control
 

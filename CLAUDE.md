@@ -75,6 +75,10 @@ than adding per-row queries to the board.
   allowed to throw at its caller — a GitHub outage must not fail a task edit;
   failures land on the project's activity log.
 
+Onboarding (`src/lib/core/repos.ts`) shares `createProjectFromRepo` and
+`syncIssuesFor` with the scheduled sync rather than duplicating them, so a
+project added by hand is indistinguishable from one the cron imported.
+
 Issue fetching uses GraphQL, not REST. The REST `/issues` endpoint returns pull
 requests alongside issues, and on a PR-heavy repo they crowd the open issues out
 of the first page entirely.

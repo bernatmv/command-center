@@ -9,6 +9,7 @@ import { recordMoney } from '@/lib/core/money'
 import { logUpdate } from '@/lib/core/log'
 import { portfolioBriefing } from '@/lib/core/briefing'
 import { syncGitHub } from '@/lib/github/sync'
+import { listOnboardableRepos, onboardRepos } from '@/lib/core/repos'
 import { moneyCreateSchema, projectCreateSchema, projectUpdateSchema } from '@/lib/schemas'
 import { MONEY_CADENCES, MONEY_KINDS, PRIORITIES, RESOURCE_KINDS, TASK_STATUSES } from '@/lib/types'
 
@@ -50,6 +51,30 @@ export function buildServer(ctx: Ctx): McpServer {
       }),
     },
     async ({ days }) => json(await syncGitHub(ctx, days)),
+  )
+
+  server.registerTool(
+    'list_onboardable_repos',
+    {
+      title: 'List repos not yet on the board',
+      description:
+        'GitHub repos that have no project yet. The scheduled sync only reaches repos pushed in the last 90 days, so older ones stay invisible until onboarded. Entries flagged `auto` would be imported by the next sync anyway.',
+      inputSchema: z.object({}),
+    },
+    async () => json(await listOnboardableRepos(ctx)),
+  )
+
+  server.registerTool(
+    'onboard_repos',
+    {
+      title: 'Onboard repos',
+      description:
+        'Create projects for specific GitHub repos by "owner/name", regardless of how long ago they were pushed, and pull their open issues immediately.',
+      inputSchema: z.object({
+        repos: z.array(z.string()).min(1).describe('Full names, e.g. ["bernatmv/typeless-chrome-extension"]'),
+      }),
+    },
+    async ({ repos }) => json(await onboardRepos(ctx, repos)),
   )
 
   server.registerTool(
