@@ -3,15 +3,29 @@
 --
 -- Sign in to the dashboard once before running this, so an auth user exists.
 
+set search_path = command_center, public;
+
 do $$
 declare
   owner uuid;
+  user_count int;
   p_forkcast uuid; p_tripo uuid; p_meshy uuid; p_cal uuid; p_vid uuid; p_old uuid;
 begin
-  select id into owner from auth.users order by created_at limit 1;
-  if owner is null then
+  -- auth.users is shared with the other apps on this project, so never just
+  -- grab the first row: insist on exactly one user, or be told which email.
+  select count(*) into user_count from auth.users;
+
+  if user_count = 0 then
     raise notice 'No auth user found — sign in to the dashboard once, then re-run this seed.';
     return;
+  elsif user_count = 1 then
+    select id into owner from auth.users;
+  else
+    select id into owner from auth.users
+      where email = current_setting('command_center.owner_email', true);
+    if owner is null then
+      raise exception 'Several auth users exist. Run: set command_center.owner_email = ''you@example.com'';';
+    end if;
   end if;
 
   delete from projects where user_id = owner;

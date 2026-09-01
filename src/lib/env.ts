@@ -5,6 +5,13 @@ function required(name: string): string {
   return value
 }
 
+/**
+ * This app lives in its own Postgres schema on a shared "Mini Apps" Supabase
+ * project — one schema per small app, to stay under the project limit. Nothing
+ * of ours is in `public`.
+ */
+export const DB_SCHEMA = 'command_center'
+
 export const env = {
   get supabaseUrl() { return required('NEXT_PUBLIC_SUPABASE_URL') },
   get supabaseAnonKey() { return required('NEXT_PUBLIC_SUPABASE_ANON_KEY') },

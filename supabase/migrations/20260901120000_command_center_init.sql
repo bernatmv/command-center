@@ -1,5 +1,13 @@
 -- Command Center — initial schema.
--- Single-user portfolio dashboard. Every table is owned by a user and guarded by RLS.
+--
+-- This app lives in its own schema on the shared "Mini Apps" project, matching
+-- the convention used by customer_finder, map_shop, seo_optimizer, and
+-- video_generator. Nothing is created in public.
+
+create schema if not exists command_center;
+
+-- Unqualified objects below land in command_center; auth.* is always explicit.
+set search_path = command_center, public, extensions;
 
 -- ---------------------------------------------------------------- enums
 
@@ -16,7 +24,9 @@ create type log_source     as enum ('ui','api','mcp');
 -- ---------------------------------------------------------------- helpers
 
 create or replace function set_updated_at() returns trigger
-language plpgsql as $$
+language plpgsql
+set search_path = ''
+as $$
 begin
   new.updated_at = now();
   return new;
@@ -154,13 +164,13 @@ alter table money_entries enable row level security;
 alter table project_log   enable row level security;
 alter table api_tokens    enable row level security;
 
-create policy owner_all on projects      for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy owner_all on tasks         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy owner_all on ideas         for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy owner_all on resources     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy owner_all on money_entries for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy owner_all on project_log   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
-create policy owner_all on api_tokens    for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy owner_all on projects      for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy owner_all on tasks         for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy owner_all on ideas         for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy owner_all on resources     for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy owner_all on money_entries for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy owner_all on project_log   for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy owner_all on api_tokens    for all using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 -- ---------------------------------------------------------------- dashboard view
 -- One query backs the whole priority table. security_invoker keeps RLS applied.
@@ -194,3 +204,18 @@ select
      where r.project_id = p.id)::int as resource_count,
   greatest(0, (extract(epoch from (now() - p.last_touched_at)) / 86400)::int) as days_stale
 from projects p;
+
+-- ---------------------------------------------------------------- grants
+-- A fresh schema inherits none of the privileges Supabase pre-grants on public,
+-- so PostgREST roles need them explicitly. `anon` is deliberately excluded:
+-- nothing here should be readable before sign-in. RLS still guards every row.
+
+grant usage on schema command_center to authenticated, service_role;
+grant all on all tables    in schema command_center to authenticated, service_role;
+grant all on all sequences in schema command_center to authenticated, service_role;
+grant all on all functions in schema command_center to authenticated, service_role;
+
+alter default privileges in schema command_center
+  grant all on tables to authenticated, service_role;
+alter default privileges in schema command_center
+  grant all on sequences to authenticated, service_role;

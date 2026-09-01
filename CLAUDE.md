@@ -33,6 +33,19 @@ Concretely, that means:
 
 ## Database
 
+This app owns the **`command_center` schema** on the shared "Mini Apps" Supabase
+project (`gqknhdnmakqmumxkpinw`). Every small app there gets its own schema to
+stay under the project limit, so:
+
+- Never create anything in `public`.
+- Never run `supabase db push`. The migration history on that project is shared
+  with other apps' repos, so the CLI refuses to run, and the repair it suggests
+  would mark *their* migrations as reverted. Use `pnpm db:push`, which runs
+  `scripts/db.mjs` — it applies our files via the Management API and records
+  only our own versions.
+- Anything global (PostgREST exposed schemas, auth providers, redirect URLs) is
+  shared with the other apps. Add, never replace.
+
 Migrations are plain SQL in `supabase/migrations/`, applied with `pnpm db:push`.
 There is no ORM and no generated types file — `src/lib/types.ts` holds
 hand-written row types, and the enum arrays there are the source of truth that

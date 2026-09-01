@@ -9,8 +9,9 @@
     "lint": "eslint src --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "check": "pnpm run typecheck && pnpm run lint",
-    "db:push": "supabase db push",
-    "db:seed": "supabase db push --include-seed"
+    "db:push": "node scripts/db.mjs push",
+    "db:seed": "node scripts/db.mjs seed",
+    "db:status": "node scripts/db.mjs status"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",

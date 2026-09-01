@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { env } from '@/lib/env'
+import { DB_SCHEMA, env } from '@/lib/env'
 
 /**
  * Service-role client. RLS is bypassed, so every caller MUST scope queries to a
@@ -8,6 +8,7 @@ import { env } from '@/lib/env'
  */
 export function createAdminClient() {
   return createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
+    db: { schema: DB_SCHEMA },
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }

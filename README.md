@@ -54,17 +54,33 @@ That is what makes the staleness signal trustworthy.
 
 ### 1. Supabase
 
-Create a project at [supabase.com](https://supabase.com), then:
+This app does **not** get its own Supabase project. It lives in the
+`command_center` schema on the shared **Mini Apps** project
+(`gqknhdnmakqmumxkpinw`), alongside `customer_finder`, `map_shop`,
+`seo_optimizer`, and `video_generator` — one schema per small app, to stay under
+the project limit. Nothing of ours touches `public`.
 
 ```bash
 supabase login
-supabase link --project-ref YOUR_PROJECT_REF
-pnpm db:push          # applies supabase/migrations
+supabase link --project-ref gqknhdnmakqmumxkpinw
+pnpm db:status        # which of our migrations are applied
+pnpm db:push          # apply pending ones
 pnpm db:seed          # optional sample portfolio (sign in once first)
 ```
 
-Enable **GitHub** under Authentication → Providers, using a GitHub OAuth app
-whose callback URL is `https://YOUR_PROJECT.supabase.co/auth/v1/callback`.
+`pnpm db:*` runs `scripts/db.mjs`, not `supabase db push`. The project's
+migration history is shared, so the CLI sees migrations it has no local files
+for and refuses to run — and the repair it suggests would mark the *other* apps'
+migrations as reverted. The script applies our files through the Management API
+and records only our own versions.
+
+Two settings on the shared project are already configured, and are worth knowing
+about because they are global:
+
+- PostgREST's exposed schemas include `command_center` (added alongside
+  `public`, not replacing it).
+- Authentication → Providers → **GitHub**, with a GitHub OAuth app whose
+  callback URL is `https://gqknhdnmakqmumxkpinw.supabase.co/auth/v1/callback`.
 
 ### 2. Environment
 
@@ -72,7 +88,7 @@ Copy `.env.example` to `.env.local` and fill it in:
 
 | Variable | Where it comes from |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_URL` | Mini Apps → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | same page |
 | `SUPABASE_SERVICE_ROLE_KEY` | same page — server-only, never exposed to the browser |
 | `ALLOWED_EMAIL` | the single GitHub account allowed to sign in |
@@ -86,15 +102,18 @@ pnpm dev
 
 ### 4. Deploy
 
-Import the repo on Vercel, set the same environment variables, and add the
-deployed URL to Supabase → Authentication → URL Configuration.
+Import the repo on Vercel, set the same environment variables plus
+`NEXT_PUBLIC_SITE_URL`, and add the deployed URL to the Mini Apps project under
+Authentication → URL Configuration (redirect allow list).
 
 ## Access control
 
 Two independent layers, so neither is load-bearing alone:
 
 - **RLS.** Every table carries a `user_id` and a policy of `auth.uid() = user_id`.
-  The dashboard view is `security_invoker`, so it inherits the same rules.
+  The dashboard view is `security_invoker`, so it inherits the same rules. The
+  `command_center` schema grants to `authenticated` and `service_role` only —
+  `anon` cannot reach it at all, which matters on a shared project.
 - **An email gate.** `/auth/callback` signs out any account whose email isn't
   `ALLOWED_EMAIL`, so publishing the OAuth app can't hand anyone else a session.
 
